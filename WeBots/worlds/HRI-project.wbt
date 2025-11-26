@@ -14,8 +14,8 @@ WorldInfo {
   basicTimeStep 16
 }
 Viewpoint {
-  orientation -0.5301705082917637 0.5463194077396938 0.6484245035966816 1.9635052207256856
-  position 3.5239975014617064e-05 -0.31238235015327936 2.073408788907968
+  orientation -0.5112674234696705 0.5268406948456902 0.6790025802257271 1.9205690213186435
+  position 0.0025896320985214216 -0.7105134462253865 4.149631397858005
 }
 TexturedBackground {
 }
@@ -91,8 +91,10 @@ Solid {
   boundingObject USE GEOMETRY_LEG
 }
 TangramPieces {
+  origin 0.5 -0.5 0
 }
 Solid {
+  translation 0.5 -0.5 0
   children [
     DEF UPPER_HALF Pose {
       children [
@@ -192,7 +194,7 @@ Solid {
         }
       ]
     }
-    Transform {
+    Pose {
       translation 0 0 0.86
       rotation 1 0 0 3.141592653589793
       children [
@@ -201,4 +203,31 @@ Solid {
     }
   ]
   name "Puzzle outline"
+}
+
+Solid {
+  translation 0 0 0.43
+  children [
+    # First line
+    DEF MARK_LINE Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 1
+        roughness 0.7
+        metalness 0
+      }
+      geometry Box {
+        size 0.04 2 0.005
+      }
+    }
+
+    # Reused line, rotated 90 degrees around Z
+    Transform {
+    rotation 0 0 1 1.5708
+    scale 1 0.5 1
+    children [
+      USE MARK_LINE
+    ]
+  }
+  ]
+  name "Table markings"
 }
