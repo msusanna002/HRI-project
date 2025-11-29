@@ -20,6 +20,7 @@ N_PARTS = 12
 robot_view_target = None
 vp_pos_field = None
 vp_rot_field = None
+red_square_pos = None
 
 init_viewpoint = [0, -2.05, 2.6]
 init_rotation = [-0.37570441069953675, 0.3756483724608402, 0.8471921246378744, 1.748990849844424]
@@ -230,6 +231,34 @@ def sanity_test_ik():
     print("Back from IK:", pos_ik)
     print("Position error in sanity test:", err)
 
+def arm_movement(targetPos, lift, tableHeight):
+    target_x = targetPos[0]
+    target_y = targetPos[1]
+    target_z= targetPos[2]
+
+    pos, _ = get_end_effector_pose()
+    current_x, current_y, current_z = pos
+    safe_z = tableHeight + lift
+
+    lifted_target = [target_x, target_y, max(target_z, safe_z)]
+
+    lift_rotation = 0.8
+    robot_parts[6].setPosition(lift_rotation)
+    motor_blocking(lift_rotation)
+
+    move_arm_to_position_blocking(
+        lifted_target,
+        orientation=[0, 0, 1],
+        orientation_mode="Z",
+        pos_tolerance=0.2
+    )
+
+    move_arm_to_position_blocking(
+    targetPos,
+    orientation=[0, 0, 1],
+    orientation_mode="Z",
+    )
+
 # ---------------------------------------------------------------------
 # Helper: make head look at the Viewpoint
 # ---------------------------------------------------------------------
@@ -325,7 +354,62 @@ def make_head_look_at_target(robot_parts, robot_node, target_pos):
     # Apply the (possibly clamped) positions
     head_pan.setPosition(-clamped_yaw)
     head_tilt.setPosition(-clamped_tilt)
+    
 
+# ---------------------------------------------------------------------
+# Helper: world to robot coordinaet translation
+# ---------------------------------------------------------------------
+
+def axis_angle_to_rotation_matrix(axis, angle):
+    """Convert Webots axis angle [ax, ay, az, angle] to a 3x3 rotation matrix."""
+    ax, ay, az = axis
+    norm = math.sqrt(ax*ax + ay*ay + az*az)
+    if norm == 0:
+        return np.eye(3)
+
+    ux, uy, uz = ax / norm, ay / norm, az / norm
+    c = math.cos(angle)
+    s = math.sin(angle)
+    one_c = 1.0 - c
+
+    R = np.array([
+        [c + ux*ux*one_c,     ux*uy*one_c - uz*s, ux*uz*one_c + uy*s],
+        [uy*ux*one_c + uz*s,  c + uy*uy*one_c,    uy*uz*one_c - ux*s],
+        [uz*ux*one_c - uy*s,  uz*uy*one_c + ux*s, c + uz*uz*one_c   ]
+    ])
+    return R
+
+
+def world_to_robot(world_xyz, robot_node):
+    """
+    Convert a point from Webots world coordinates to the robot base_link frame.
+
+    world_xyz: [x, y, z] in world coords
+    returns: [x, y, z] in robot base coords
+    """
+    # Robot base pose in world frame
+    base_translation_field = robot_node.getField("translation")
+    base_rotation_field    = robot_node.getField("rotation")
+
+    base_pos = np.array(base_translation_field.getSFVec3f())   # p_B^W
+    ax, ay, az, angle = base_rotation_field.getSFRotation()    # axis angle
+
+    # Rotation from base frame to world frame
+    R_WB = axis_angle_to_rotation_matrix([ax, ay, az], angle)
+
+    # Inverse rotation gives world to base
+    R_BW = R_WB.T
+
+    # Position of point in world frame
+    p_W = np.array(world_xyz)
+
+    # Relative to base origin in world frame
+    p_rel_W = p_W - base_pos
+
+    # Express that vector in base frame
+    p_B = R_BW.dot(p_rel_W)
+
+    return [float(p_B[0]), float(p_B[1]), float(p_B[2])]
 
 
 # ---------------------------------------------------------------------
@@ -360,104 +444,13 @@ def check_keyboard(robot_parts, keyboard, robot_node, head_pan_sensor, head_tilt
         vp_rot_field.setSFRotation(init_rotation)
 
     elif key == ord('1'):
-        target_x = 0.1588165006012755
-        target_y = -0.6551061765994144
-        target_z = 0.43
-        target = [target_x, target_y, target_z] 
-        print("'1' pressed: moving arm to scattered pieces", target)
-
-        # current EE pose
-        pos, _ = get_end_effector_pose()
-        current_x, current_y, current_z = pos
-
-        TABLE_Z = 0.46
-        LIFT = 0.3
-        safe_z = TABLE_Z + LIFT
-
-        lifted_start = [current_x, current_y, max(current_z, safe_z)]
-        lifted_target = [target_x, target_y, max(target_z, safe_z)]
-
-        # 1) move straight up to a safe height
-        # move_arm_to_position_blocking(
-        #     lifted_start,
-        #     # orientation=[0, 0, 1],
-        #     # orientation_mode="Z",
-        #     pos_tolerance=0.2
-        # )
-
-        # move_arm_to_position_blocking(
-        #     lifted_target,
-        #     orientation=[0, 0, 1],
-        #     orientation_mode="Z",
-        #     pos_tolerance=0.2
-        # )
-
-        lift_rotation = 0.8
-        robot_parts[6].setPosition(lift_rotation)
-        motor_blocking(lift_rotation)
-
-        # # 2) move down to the target
-        # move_arm_to_position_blocking(
-        #     target,
-        #     # orientation=[0, 0, 1],
-        #     # orientation_mode="Z",
-        # )
-        move_arm_to_position_blocking(
-        target,
-        orientation=[0, 0, 1],
-        orientation_mode="Z",
-        )
-
+        testPos1 = [0.1588165006012755, -0.6551061765994144, 0.43]
+        arm_movement(testPos1, 0.3, 0.43)
 
 
     elif key == ord('2'):
-        target_x = 0.7
-        target_y = 0.0
-        target_z= 0.43
-        target = [target_x, target_y, target_z] 
-        print("'2' pressed: moving arm to rocket shape", target)
-
-        pos, _ = get_end_effector_pose()
-        current_x, current_y, current_z = pos
-
-        TABLE_Z = 0.46
-        LIFT = 0.3
-        safe_z = TABLE_Z + LIFT
-
-        lifted_start = [current_x, current_y, max(current_z, safe_z)]
-        lifted_target = [target_x, target_y, max(target_z, safe_z)]
-
-        # move_arm_to_position_blocking(
-        #     lifted_start,
-        #     pos_tolerance=0.2,
-        #     # orientation=[0, 0, 1],
-        #     # orientation_mode="Z",
-        #     # orientation=[0, 0, 1],
-        # )
-
-        lift_rotation = 0.8
-        robot_parts[6].setPosition(lift_rotation)
-        motor_blocking(lift_rotation)
-
-        # move_arm_to_position_blocking(
-        # lifted_target,
-        # orientation=[0, 0, 1],
-        # orientation_mode="Z",
-        # pos_tolerance=0.2
-        # )
-
-        # move_arm_to_position_blocking(
-        #     target,
-        #     # orientation=[0, 0, 1],
-        #     # orientation_mode="Z",
-        # )
-        move_arm_to_position_blocking(
-        target,
-        orientation=[0, 0, 1],
-        orientation_mode="Z",
-        )
-
-        
+        testPos2 = [0.7, 0.0, 0.43]
+        arm_movement(testPos2, 0.3, 0.43) 
         
         
     space_now = (key == ord(' '))
@@ -632,15 +625,15 @@ initial_time = robot.getTime()
 print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 
 # initial view direction of robot
-right1_node = robot.getFromDef("PARA_PIECE_1_A")
-if right1_node is None:
-    print("Could not find PARA_PIECE_1_A node")
+red_square = robot.getFromDef("SQUARE_RED")
+if red_square is None:
+    print("Could not find SQUARE_RED node")
 
 piece_pos = 0
 last_robot_view_target = 0
 
-if right1_node is not None:
-    translation_field = right1_node.getField("translation")
+if red_square is not None:
+    red_square_pos = red_square.getField("translation")
 
 # current_chain_positions = get_current_chain_positions()
 # print ("initial chain positions", current_chain_positions)
