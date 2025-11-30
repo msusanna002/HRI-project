@@ -29,8 +29,10 @@ def check_keyboard(robot_parts, keyboard, robot_node):
         speeds_right = cfg.MAX_SPEED
 
     elif key == ord('0'):
-        scene.vp_pos_field.setSFVec3f(cfg.init_viewpoint_coord)
-        scene.vp_rot_field.setSFRotation(cfg.init_viewpoint_rotation)
+        vp_pos_field = scene.viewpoint.getField("position")
+        vp_rot_field = scene.viewpoint.getField("orientation")
+        vp_pos_field.setSFVec3f(cfg.init_viewpoint_coord)
+        vp_rot_field.setSFRotation(cfg.init_viewpoint_rotation)
 
     elif key == ord('1'):
         arm_movement(scene.puzzle_outline, 0.3, 0.43, robot_node)
