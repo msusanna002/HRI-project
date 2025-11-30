@@ -42,6 +42,9 @@ def check_keyboard(robot_parts, keyboard, robot_node):
 
     elif key == ord('3'):
         arm_movement(scene.para_1_red, 0.3, 0.43, robot_node)
+    
+    elif key == ord('4'):
+        arm_movement(scene.para_2_target, 0.3, 0.43, robot_node)
         
         
     space_now = (key == ord(' '))

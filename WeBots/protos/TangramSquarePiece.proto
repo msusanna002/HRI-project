@@ -14,7 +14,7 @@ PROTO TangramSquarePiece [
     scale IS scale
     children [
       Solid {
-        name IS name
+        name IS name    
         children [
           Shape {
             appearance PBRAppearance {
