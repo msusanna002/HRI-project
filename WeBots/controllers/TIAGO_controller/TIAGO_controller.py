@@ -20,7 +20,9 @@ N_PARTS = 12
 robot_view_target = None
 vp_pos_field = None
 vp_rot_field = None
-red_square_pos = None
+square_red_pos = None
+puzzle_outline = None
+para_1_red = None
 
 init_viewpoint = [0, -2.05, 2.6]
 init_rotation = [-0.37570441069953675, 0.3756483724608402, 0.8471921246378744, 1.748990849844424]
@@ -231,10 +233,18 @@ def sanity_test_ik():
     print("Back from IK:", pos_ik)
     print("Position error in sanity test:", err)
 
-def arm_movement(targetPos, lift, tableHeight):
-    target_x = targetPos[0]
-    target_y = targetPos[1]
-    target_z= targetPos[2]
+def arm_movement(targetObject, lift, tableHeight, robotNode):
+    targetPosWC = None
+    if targetObject is not None:
+        targetPosWC = targetObject.getField("translation").getSFVec3f() 
+    else: 
+        print (targetObject, "is not valid")
+    targetPosRC = world_to_robot(targetPosWC,robotNode)
+
+
+    target_x = targetPosRC[0]
+    target_y = targetPosRC[1]
+    target_z= targetPosRC[2]
 
     pos, _ = get_end_effector_pose()
     current_x, current_y, current_z = pos
@@ -254,7 +264,7 @@ def arm_movement(targetPos, lift, tableHeight):
     )
 
     move_arm_to_position_blocking(
-    targetPos,
+    targetPosRC,
     orientation=[0, 0, 1],
     orientation_mode="Z",
     )
@@ -444,13 +454,13 @@ def check_keyboard(robot_parts, keyboard, robot_node, head_pan_sensor, head_tilt
         vp_rot_field.setSFRotation(init_rotation)
 
     elif key == ord('1'):
-        testPos1 = [0.1588165006012755, -0.6551061765994144, 0.43]
-        arm_movement(testPos1, 0.3, 0.43)
-
-
+        arm_movement(puzzle_outline, 0.3, 0.43, robot_node)
+        
     elif key == ord('2'):
-        testPos2 = [0.7, 0.0, 0.43]
-        arm_movement(testPos2, 0.3, 0.43) 
+        arm_movement(square_red, 0.3, 0.43, robot_node) 
+
+    elif key == ord('3'):
+        arm_movement(para_1_red, 0.3, 0.43, robot_node)
         
         
     space_now = (key == ord(' '))
@@ -625,15 +635,22 @@ initial_time = robot.getTime()
 print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 
 # initial view direction of robot
-red_square = robot.getFromDef("SQUARE_RED")
-if red_square is None:
+square_red = robot.getFromDef("SQUARE_RED")
+if square_red is None:
     print("Could not find SQUARE_RED node")
+
+puzzle_outline = robot.getFromDef("PUZZLE_OUTLINE")
+if puzzle_outline is None:
+    print("Could not find PUZZLE_OUTLINE node")
+
+para_1_red = robot.getFromDef("PARALELLOGRAM_2_RED")
+if para_1_red is None:
+    print("Could not find PARALELLOGRAM_2_RED node")
 
 piece_pos = 0
 last_robot_view_target = 0
 
-if red_square is not None:
-    red_square_pos = red_square.getField("translation")
+
 
 # current_chain_positions = get_current_chain_positions()
 # print ("initial chain positions", current_chain_positions)
