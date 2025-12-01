@@ -43,7 +43,7 @@ JOINT_TARGET_POS = [
     0.24,    # head_2_joint
     -0.67,   # head_1_joint
     0.09,    # torso_lift_joint
-    0.07,    # arm_1_joint
+    1.0,    # arm_1_joint
     1.0,     # arm_2_joint
     0.0,     # arm_3_joint
     1.0,     # arm_4_joint

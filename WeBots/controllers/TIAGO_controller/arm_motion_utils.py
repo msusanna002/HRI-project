@@ -26,12 +26,175 @@ def init_ik(chain, arm_sensors_map, names_list, robot_parts_list, robot_obj, ts)
     robot = robot_obj
     time_step = ts
 
+    
+
 # ---------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------
 # Workaround for ikpy on newer NumPy versions
 if not hasattr(np, "float"):
     np.float = float
+import traceback
+
+def debug_log(*args):
+    # simple helper that always flushes
+    print(*args, flush=True)
+
+
+held_piece_def = None  # replace the node-based held_piece with DEF-based
+
+# ... you already have `robot` global set in init_ik
+
+import traceback
+
+def debug_log(*args):
+    print(*args, flush=True)
+
+def send_joint_pose(pose_dict):
+    """
+    Directly command a joint-space pose, ignoring IK.
+    Used for 'rescue' when the arm is stuck or IK is bad.
+    """
+    for jname, angle in pose_dict.items():
+        if jname in names:
+            idx = names.index(jname)
+            motor = robot_parts[idx]
+            motor.setPosition(angle)
+
+def rescue_arm(reason="unknown"):
+    """
+    Try to unlock the arm by sending it to SAFE_ARM_POSE.
+    You can log the reason for debugging.
+    """
+    print(f"[RESCUE] Triggered rescue_arm due to: {reason}")
+    send_joint_pose(scene.JOINT_TARGET_POS)
+
+# def get_held_objects_children_field():
+#     """
+#     Returns the MFNode 'children' field of the HELD_OBJECTS Group inside the gripper.
+#     We go:
+#       TIAGO_ROBOT
+#         -> endEffectorSlot (Slot)
+#            -> endPoint (Solid)
+#               -> children[ i ] ... including DEF HELD_OBJECTS Group
+#     """
+#     if robot is None:
+#         debug_log("[get_held_objects_children_field] ERROR: robot is None")
+#         return None
+
+#     tiago_node = robot.getFromDef("TIAGO_ROBOT")
+#     if tiago_node is None:
+#         debug_log("[get_held_objects_children_field] ERROR: TIAGO_ROBOT not found")
+#         return None
+
+#     # endEffectorSlot is SFNode Slot
+#     slot_field = tiago_node.getField("endEffectorSlot")
+#     if slot_field is None:
+#         debug_log("[get_held_objects_children_field] ERROR: no endEffectorSlot field")
+#         return None
+
+#     slot_node = slot_field.getSFNode()
+#     if slot_node is None:
+#         debug_log("[get_held_objects_children_field] ERROR: endEffectorSlot is empty")
+#         return None
+
+#     # Slot has an SFNode endPoint: the Solid at the wrist
+#     end_point_field = slot_node.getField("endPoint")
+#     if end_point_field is None:
+#         debug_log("[get_held_objects_children_field] ERROR: Slot has no 'endPoint' field")
+#         return None
+
+#     solid_node = end_point_field.getSFNode()
+#     if solid_node is None:
+#         debug_log("[get_held_objects_children_field] ERROR: endPoint is empty")
+#         return None
+
+#     solid_children = solid_node.getField("children")
+#     if solid_children is None:
+#         debug_log("[get_held_objects_children_field] ERROR: Solid has no 'children' field")
+#         return None
+
+#     # Find DEF HELD_OBJECTS in Solid's children
+#     count = solid_children.getCount()
+#     debug_log("[get_held_objects_children_field] Solid children count:", count)
+
+#     held_group_node = None
+#     for i in range(count):
+#         n = solid_children.getMFNode(i)
+#         def_name = n.getDef()
+#         debug_log(f"[get_held_objects_children_field] child {i} DEF:", def_name)
+#         if def_name == "HELD_OBJECTS":
+#             held_group_node = n
+#             break
+
+#     if held_group_node is None:
+#         debug_log("[get_held_objects_children_field] ERROR: HELD_OBJECTS group not found")
+#         return None
+
+#     held_children = held_group_node.getField("children")
+#     if held_children is None:
+#         debug_log("[get_held_objects_children_field] ERROR: HELD_OBJECTS has no 'children' field")
+#         return None
+
+#     debug_log("[get_held_objects_children_field] SUCCESS: got HELD_OBJECTS.children field")
+#     return held_children
+
+
+# def _clone_node_to_field(node, parent_field):
+#     """
+#     Clone 'node' under the given MFNode field by exporting its string
+#     and importing a copy *without* the DEF prefix.
+#     Returns the new Node reference (the cloned node), or None on error.
+#     """
+#     try:
+#         if node is None or parent_field is None:
+#             debug_log("[_clone_node_to_field] ERROR: node or parent_field is None")
+#             return None
+
+#         field_type = parent_field.getTypeName()
+#         debug_log("[_clone_node_to_field] parent_field type:", field_type)
+#         if field_type != "MFNode":
+#             debug_log("[_clone_node_to_field] ERROR: parent_field is not MFNode")
+#             return None
+
+#         node_def = node.getDef()
+#         debug_log("[_clone_node_to_field] Cloning DEF:", node_def)
+
+#         node_string = node.exportString()
+#         debug_log("[_clone_node_to_field] Before import, children count:",
+#                   parent_field.getCount())
+
+#         # Strip leading "DEF XYZ" so the clone has no DEF and no conflict occurs.
+#         # This is a simple, robust text-level hack.
+#         s = node_string.lstrip()
+#         lines = s.split('\n', 1)
+#         first_line = lines[0]
+#         rest = lines[1] if len(lines) > 1 else ""
+#         tokens = first_line.split(None, 2)  # ["DEF", "NAME", "NodeType { ..."]
+#         if len(tokens) >= 3 and tokens[0] == "DEF":
+#             first_line = tokens[2]  # drop "DEF NAME"
+#         stripped_string = first_line + ("\n" + rest if rest else "")
+
+#         # Import the clone
+#         parent_field.importMFNodeFromString(-1, stripped_string)
+#         count_after = parent_field.getCount()
+#         debug_log("[_clone_node_to_field] After import, children count:", count_after)
+
+#         # The new node is the last element in the MFNode list
+#         if count_after > 0:
+#             new_node = parent_field.getMFNode(count_after - 1)
+#             debug_log("[_clone_node_to_field] New cloned node:", new_node)
+#             return new_node
+#         else:
+#             debug_log("[_clone_node_to_field] ERROR: children count still 0 after import")
+#             return None
+
+#     except Exception as e:
+#         debug_log("[_clone_node_to_field] EXCEPTION:", repr(e))
+#         traceback.print_exc()
+#         return None
+
+
 
 def distance_to_target(target_xyz):
     pos, _ = get_end_effector_pose_from_sensors()
@@ -107,72 +270,112 @@ def get_end_effector_pose_from_sensors():
 # ---------------------------------------------------------------------
 # IKPY-based arm motion
 # ---------------------------------------------------------------------
-def move_arm_to_position(target_xyz, orientation=None, orientation_mode=None,
-                         error_tolerance=0.005):
+def move_arm_to_position(target_xyz,
+                         orientation=None,
+                         orientation_mode=None,
+                         error_tolerance=0.005,
+                         max_retries=3,
+                         lift_step=0.03):
     """
     Use IKPY to move the TIAGo arm so that the end-effector reaches `target_xyz`
     in robot base coordinates.
 
-    Parameters
-    ----------
-    target_xyz : list/tuple of length 3
-        [x, y, z] in the same base frame as the IK chain (usually base_link).
-    orientation : list/tuple of length 3 or 4, optional
-        Optional target orientation vector, passed to IKPY.
-        For example [0, 0, 1] to keep the tool roughly vertical.
-    orientation_mode : str, optional
-        IKPY orientation mode, e.g. "Y" or "all". None means no orientation.
-    error_tolerance : float
-        If the distance error after solution is greater than this, you can
-        decide to re-run IK or log a warning.
+    - If IK error is too large, we "rise arm and try again" by raising the
+      target in z by `lift_step` up to `max_retries` times.
+    - Only the best valid solution (if any) is sent to the motors.
+    - Returns the best position error (float). If all attempts fail, returns +inf.
     """
-    # 1) Get current joint configuration as initial guess
+    # 1) Current joint configuration as initial guess
     initial_position = get_joint_positions_from_sensors()
 
-    # 2) Run IK
-    if orientation is not None and orientation_mode is not None:
-        ik_results = my_chain.inverse_kinematics(
-            target_xyz,
-            initial_position=initial_position,
-            target_orientation=orientation,
-            orientation_mode=orientation_mode,
-        )
-    else:
-        ik_results = my_chain.inverse_kinematics(
-            target_xyz,
-            initial_position=initial_position,
-        )
+    def _solve_ik(target):
+        if orientation is not None and orientation_mode is not None:
+            return my_chain.inverse_kinematics(
+                target,
+                initial_position=initial_position,
+                target_orientation=orientation,
+                orientation_mode=orientation_mode,
+            )
+        else:
+            return my_chain.inverse_kinematics(
+                target,
+                initial_position=initial_position,
+            )
 
-    # 3) Optional: compute position error in task space (rough check)
-    #    (Using the requested target and forward kinematics on ik_results)
-    fk_result = my_chain.forward_kinematics(ik_results)
-    end_eff_pos = fk_result[:3, 3]
-    err = math.sqrt(
-        (end_eff_pos[0] - target_xyz[0]) ** 2 +
-        (end_eff_pos[1] - target_xyz[1]) ** 2 +
-        (end_eff_pos[2] - target_xyz[2]) ** 2
-    )
+    base_target = np.array(target_xyz, dtype=float)
 
-    if err > error_tolerance:
-        print(f"[IK] Warning: end-effector error {err:.4f} > tolerance {error_tolerance:.4f}")
+    best_err = float("inf")
+    best_ik = None
+    best_target = None
 
-    # 4) Apply joint angles to Webots motors
+    for k in range(max_retries + 1):
+        attempt_target = base_target.copy()
+        attempt_target[2] += k * lift_step  # "rise arm and try again"
+
+        try:
+            ik_results = _solve_ik(attempt_target.tolist())
+        except Exception as e:
+            print(f"[IK] inverse_kinematics exception on attempt {k}:", repr(e))
+            continue
+
+        if ik_results is None or len(ik_results) != len(my_chain.links):
+            print(f"[IK] invalid IK result on attempt {k}")
+            continue
+
+        fk_result = my_chain.forward_kinematics(ik_results)
+        end_eff_pos = fk_result[:3, 3]
+        dx = end_eff_pos[0] - attempt_target[0]
+        dy = end_eff_pos[1] - attempt_target[1]
+        dz = end_eff_pos[2] - attempt_target[2]
+        err = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+        if not np.isfinite(err):
+            print(f"[IK] Non-finite error on attempt {k}, skipping")
+            continue
+
+        print(f"[IK] attempt {k}: target = {attempt_target}, err = {err:.4f}")
+
+        # Track best attempt so far
+        if err < best_err:
+            best_err = err
+            best_ik = ik_results
+            best_target = attempt_target.copy()
+
+        # If this attempt is already good enough, stop retrying
+        if err <= error_tolerance:
+            break
+
+    # If no valid IK solution at all, do not command motors
+    if best_ik is None or not np.isfinite(best_err):
+        print("[IK] All attempts failed; not commanding motors")
+        return float("inf")
+
+    # If the best solution is still not within tolerance, we still have a
+    # choice: send it (if it is "reasonable") or refuse. Here we send it,
+    # but with a warning:
+    if best_err > error_tolerance:
+        print(f"[IK] Best error {best_err:.4f} > tolerance {error_tolerance:.4f}, "
+              f"using lifted target {best_target} anyway")
+
+    # 4) Apply best joint angles to Webots motors
     for i, link in enumerate(my_chain.links):
         if not my_chain.active_links_mask[i]:
             continue
 
         link_name = link.name
-
-        # Only send commands to joints that correspond to Webots motors
         if link_name in names:
             motor_index = names.index(link_name)
             motor = robot_parts[motor_index]
-            target_angle = ik_results[i]
-            motor.setPosition(target_angle)
-            # You can log if needed:
-            # print(f"Setting {link_name} to {target_angle:.3f}")
+            target_angle = best_ik[i]
 
-    return err
+            if not np.isfinite(target_angle):
+                print(f"[IK] Non-finite joint value for {link_name}: {target_angle}, skipping")
+                continue
+
+            motor.setPosition(target_angle)
+
+    return best_err
+
 
 def move_arm_to_position_blocking(target_xyz,
                                   target_string,
@@ -228,31 +431,169 @@ def motor_blocking(target_angle):
         if err < 0.01:
             break
 
-def grab_piece(piece_node, robot_node):
+# ---------------------------------------------------------------------
+# Grab and Drop helpers        
+# --------------------------------------------------------------------- 
+def get_gripper_node():
     """
-    Start 'holding' this piece. Call this when the arm has reached it.
+    Returns the CustomTiagoGripper PROTO instance stored in TIAGO_ROBOT.endEffectorSlot.
+    In the world file this is:
+      endEffectorSlot DEF GRIPPER_LINK CustomTiagoGripper { }
+    which is an SFNode, not an MFNode list.
+    """
+    if robot is None:
+        print("[get_gripper_node] ERROR: global robot is None (init_ik not called?)")
+        return None
+
+    tiago_node = robot.getFromDef("TIAGO_ROBOT")
+    if tiago_node is None:
+        print("[get_gripper_node] ERROR: could not find TIAGO_ROBOT by DEF")
+        return None
+
+    slot_field = tiago_node.getField("endEffectorSlot")
+    if slot_field is None:
+        print("[get_gripper_node] ERROR: TIAGO_ROBOT has no 'endEffectorSlot' field")
+        return None
+
+    print("[get_gripper_node] endEffectorSlot type:", slot_field.getTypeName())
+    # Should print "SFNode"
+
+    slot_node = slot_field.getSFNode()
+    if slot_node is None:
+        print("[get_gripper_node] ERROR: endEffectorSlot is empty")
+        return None
+
+    print("[get_gripper_node] Found gripper slot node DEF:", slot_node.getDef())
+    return slot_node
+
+
+
+
+held_piece_def = None
+held_piece_clone = None
+
+# def attach_piece_to_gripper(piece_node, robotNode):
+#     global held_piece_def, held_piece_clone
+
+#     try:
+#         if piece_node is None:
+#             debug_log("[attach_piece_to_gripper] piece_node is None, aborting")
+#             return
+
+#         held_piece_def = piece_node.getDef()
+#         debug_log("[attach_piece_to_gripper] piece DEF:", held_piece_def)
+
+#         # Hide original piece by moving it down
+#         orig_trans_field = piece_node.getField("translation")
+#         if orig_trans_field is not None:
+#             orig_pos = orig_trans_field.getSFVec3f()
+#             debug_log("[attach_piece_to_gripper] original piece world pos:", orig_pos)
+#             orig_trans_field.setSFVec3f([orig_pos[0], orig_pos[1], orig_pos[2] - 5.0])
+#             debug_log("[attach_piece_to_gripper] moved original piece down by 5m")
+
+#         # Get HELD_OBJECTS.children MFNode field
+#         held_children = get_held_objects_children_field()
+#         if held_children is None:
+#             debug_log("[attach_piece_to_gripper] ERROR: could not get HELD_OBJECTS children field")
+#             return
+
+#         debug_log("[attach_piece_to_gripper] HELD_OBJECTS children count before clone:",
+#                   held_children.getCount())
+
+#         # Clone the node under HELD_OBJECTS
+#         clone_node = _clone_node_to_field(piece_node, held_children)
+#         if clone_node is None:
+#             debug_log("[attach_piece_to_gripper] ERROR: cloning under HELD_OBJECTS failed")
+#             return
+
+#         held_piece_clone = clone_node
+
+#         # Remove physics on the clone
+#         phys_field = clone_node.getField("physics")
+#         if phys_field is not None:
+#             phys_node = phys_field.getSFNode()
+#             debug_log("[attach_piece_to_gripper] clone physics node:", phys_node)
+#             if phys_node is not None:
+#                 phys_field.setSFNode(None)
+#                 debug_log("[attach_piece_to_gripper] clone physics removed")
+
+#         # Set clone's local translation to origin of HELD_OBJECTS frame
+#         trans_field = clone_node.getField("translation")
+#         if trans_field is not None:
+#             trans_field.setSFVec3f([0.0, 0.0, 0.0])
+#             debug_log("[attach_piece_to_gripper] clone local translation set to 0,0,0")
+
+#         debug_log("[attach_piece_to_gripper] SUCCESS: Attached visual clone of DEF",
+#                   held_piece_def, "under HELD_OBJECTS")
+
+#         return clone_node
+
+#     except Exception as e:
+#         debug_log("[attach_piece_to_gripper] EXCEPTION:", repr(e))
+#         import traceback
+#         traceback.print_exc()
+#         return
+
+
+
+
+
+
+held_piece = None
+
+def grab_piece(piece_node, robotNode):
+    """
+    Simple grab: remember the piece, remove its physics.
+    Its pose will be updated every timestep by update_held_piece().
     """
     global held_piece
+
+    if piece_node is None:
+        print("[grab_piece] ERROR: piece_node is None")
+        return
+
     held_piece = piece_node
-    # Do one immediate update so it snaps into place
-    update_held_piece(robot_node)
+
+    # Remove physics so it doesn't fight with the gripper
+    phys_field = piece_node.getField("physics")
+    if phys_field is not None:
+        phys_node = phys_field.getSFNode()
+        if phys_node is not None:
+            phys_field.setSFNode(None)
+
+    print("[grab_piece] Now holding", piece_node.getDef())
+
 
 
 def drop_piece():
     """
-    Stop holding the current piece. It will stay where it is.
+    Release the piece: stop following the hand.
+    (Optional: add physics back, and leave it where it is.)
     """
     global held_piece
+
+    if held_piece is None:
+        print("[drop_piece] Nothing to drop")
+        return
+
+    # Optionally restore physics here if your PROTO exposes it
+    # phys_field = held_piece.getField("physics")
+    # if phys_field is not None and phys_field.getSFNode() is None:
+    #     # Create a Physics node via importMFNodeFromString:
+    #     phys_field.importMFNodeFromString(-1, "Physics {}")
+
+    print("[drop_piece] Dropped", held_piece.getDef())
     held_piece = None
 
+
+
+held_piece = None
 
 def update_held_piece(robot_node):
     """
     If we are holding a piece, keep its translation under the end-effector.
     Call this once every timestep from the main loop.
     """
-
-    # print("Updating held piece position to:", held_piece.getDef() if held_piece else "None")
     if held_piece is None:
         return
 
@@ -267,24 +608,7 @@ def update_held_piece(robot_node):
 
     held_piece.getField("translation").setSFVec3f(pos_W)
 
-# def grab_piece(piece_node, robot_node):
-#     """
-#     Grab piece with NO offset.
-#     Snap the piece directly to the end-effector position.
-#     """
-#     global held_piece
-#     held_piece = piece_node
 
-#     # Get end-effector position in robot frame
-#     hand_pos_B, _ = get_end_effector_pose_from_sensors()
-
-#     # Convert to world coordinates
-#     hand_pos_W = robot_to_world(hand_pos_B, robot_node)
-
-#     # Move piece directly to the hand position
-#     piece_node.getField("translation").setSFVec3f(hand_pos_W)
-
-#     print("[grab_piece] snapped piece to the hand")
 
 
 def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
@@ -389,7 +713,7 @@ def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
     )
 
     if do_grab:
-        grab_piece(targetObject, robotNode)
+        grab_piece(targetObject, robot)
     if do_drop:
         drop_piece()
 
@@ -416,11 +740,11 @@ def move_piece(targetObject, destination, robotNode):
 # Non-blocking arm task
 # ---------------------------------------------------------------------
 class ArmMovementTask:
-    def __init__(self, targetObject, robotNode,
+    def __init__(self, targetObjectVec, robotNode,
                  x_offset=0.0, y_offset=0.0,
                  lift=0.30, tableHeight=0.40,
                  target_label="arm_task"):
-        self.targetObject = targetObject
+        self.targetObject = targetObjectVec
         self.robotNode = robotNode
         self.phase = 1
         self.done = False
@@ -429,17 +753,20 @@ class ArmMovementTask:
         self.phase2_commanded = False
         self.phase3_commanded = False
 
-        if targetObject is None:
+        self.last_err = None
+        self.stuck_steps = 0
+        self.STUCK_MAX_STEPS = 40
+        self.RESCUE_ERROR_LIMIT = 0.2
+
+        if targetObjectVec is None:
             print("[ArmMovementTask] ERROR: targetObject is None")
             self.done = True
             return
 
         # 1. Read target position in WORLD
-        obj_translation_field = targetObject.getField("translation")
-        target_world = obj_translation_field.getSFVec3f()
-        target_world_x = target_world[0]
-        target_world_y = target_world[1]
-        target_world_z = target_world[2]
+        target_world_x = targetObjectVec[0]
+        target_world_y = targetObjectVec[1]
+        target_world_z = targetObjectVec[2]
 
         # 2. Convert WORLD -> ROBOT frame
         target_robot = world_to_robot(
@@ -469,6 +796,34 @@ class ArmMovementTask:
         self.phase2_target = [grasp_x, grasp_y, lifted_z]
         self.phase3_target = [grasp_x, grasp_y, max(grasp_z_surface, MIN_Z)]
 
+    def _check_rescue(self, err):
+        """
+        Common rescue logic for all phases.
+        """
+        if not np.isfinite(err):
+            print(f"[ArmTask] Non-finite error in {self.target_label}, rescuing")
+            rescue_arm(reason=f"non-finite error in {self.target_label}")
+            self.done = True
+            return True
+
+        # track stuck steps when error is not improving
+        if self.last_err is not None and err >= self.last_err - 1e-4:
+            self.stuck_steps += 1
+            print (self.stuck_steps)
+        else:
+            self.stuck_steps = 0
+
+        self.last_err = err
+
+        # If error is large and we are stuck for too long, rescue
+        if err > self.RESCUE_ERROR_LIMIT and self.stuck_steps > self.STUCK_MAX_STEPS:
+            print(f"[ArmTask] Stuck with error {err:.4f} in {self.target_label}, rescuing")
+            rescue_arm(reason=f"stuck in {self.target_label}")
+            self.done = True
+            return True
+
+        return False
+
     def step(self):
         if self.done:
             return
@@ -487,6 +842,8 @@ class ArmMovementTask:
 
             # Only FK + distance check each tick
             err = distance_to_target(self.phase1_target)
+            if self._check_rescue(err):
+                return
             if err < 0.1:
                 print("[ArmTask] Phase 1 reached")
                 self.phase = 2
@@ -497,11 +854,13 @@ class ArmMovementTask:
             if not self.phase2_commanded:
                 move_arm_to_position(
                     self.phase2_target,
-                    error_tolerance=0.05,
+                    error_tolerance=0.1,
                 )
                 self.phase2_commanded = True
 
             err = distance_to_target(self.phase2_target)
+            if self._check_rescue(err):
+                return
             if err < 0.05:
                 print("[ArmTask] Phase 2 reached")
                 self.phase = 3
@@ -519,6 +878,8 @@ class ArmMovementTask:
                 self.phase3_commanded = True
 
             err = distance_to_target(self.phase3_target)
+            if self._check_rescue(err):
+                return
             if err < 0.01:
                 print("[ArmTask] Phase 3 reached, task done")
                 self.done = True
@@ -535,14 +896,14 @@ class MovePieceTask:
 
     Call step() once per simulation step from the main loop.
     """
-    def __init__(self, targetObject, destination, robotNode,
+    def __init__(self, targetObject, dest_vec, robotNode,
                  x_offset=0.0, y_offset=0.0,
                  lift=0.30, tableHeight=0.40):
         self.targetObject = targetObject
-        self.destination = destination
+        self.destination = dest_vec
         self.robotNode = robotNode
 
-        if targetObject is None or destination is None:
+        if targetObject is None or dest_vec is None:
             print("[MovePieceTask] ERROR: targetObject or destination is None")
             self.done = True
             self.current_subtask = None
@@ -552,10 +913,12 @@ class MovePieceTask:
         # just like your old move_piece did.
         scene.current_object = targetObject
 
+        targetObjectVec = list(targetObject.getField("translation").getSFVec3f())
+
         # First subtask: move to the piece
         self.state = "to_source"
         self.current_subtask = ArmMovementTask(
-            targetObject,
+            targetObjectVec,
             robotNode,
             x_offset=x_offset,
             y_offset=y_offset,

@@ -2,8 +2,6 @@
 
 from controller import Supervisor
 
-
-
 # Individual references (optional)
 puzzle_outline = None
 viewpoint = None
@@ -33,6 +31,16 @@ big_triangle_1_target = None
 big_triangle_2_target = None
 square_target = None
 
+# target Positions
+small_triangle_target_pos = [0.66, -0.67, 0.52]
+para_1_target_pos = [0.225, -0.55, 0.52]
+para_2_target_pos = [0.225, -0.815, 0.52]
+big_triangle_1_target_pos = [0.535, -0.64, 0.52]
+big_triangle_2_target_pos = [0.461796, -0.717877, 0.52]
+square_target_pos = [0.301374, -0.677455, 0.52]
+
+
+
 # PROTO instance itself (TangramPiecesTarget)
 tangram_target_proto = None
 
@@ -40,6 +48,25 @@ tangram_target_proto = None
 red_objects = {}
 blue_objects = {}
 target_objects = {}
+
+piece_target_pairs = [
+
+        # RED pieces
+        (small_triangle_red, small_triangle_target_pos),
+        (para_1_red,         para_1_target_pos),
+        (para_2_red,         para_2_target_pos),
+        (big_triangle_1_red, big_triangle_1_target_pos),
+        (big_triangle_2_red, big_triangle_2_target_pos),
+        (square_red,         square_target_pos),
+
+        # BLUE pieces
+        (small_triangle_blue, small_triangle_target_pos),
+        (para_1_blue,         para_1_target_pos),
+        (para_2_blue,         para_2_target_pos),
+        (big_triangle_1_blue, big_triangle_1_target_pos),
+        (big_triangle_2_blue, big_triangle_2_target_pos),
+        (square_blue,         square_target_pos),
+    ]
 
 
 def get_node_or_warn(robot: Supervisor, def_name: str):
@@ -154,3 +181,24 @@ def init_scene_objects(robot: Supervisor):
     print(f"  Red objects:   {list(red_objects.keys())}")
     print(f"  Blue objects:  {list(blue_objects.keys())}")
     print(f"  Target objects:{list(target_objects.keys())}")
+
+def reparent_node(node, new_parent_field):
+    # Export node as string, remove it from old parent, import under new parent.
+    content = node.exportString()
+    node.remove()
+    new_parent_field.importMFNode(-1, content)
+
+def attach_piece_to_gripper(robotNode, piece_node, gripper_def="GRIPPER_LINK"):
+    gripper_node = robotNode.getFromDef(gripper_def)
+    gripper_children = gripper_node.getField("children")
+
+    # Optionally remove physics to make it kinematic
+    # phys_field = piece_node.getField("physics")
+    # if phys_field.getCount() > 0:
+    #     phys_field.removeSFNode(0)
+
+    reparent_node(piece_node, gripper_children)
+
+def detach_piece_from_gripper(piece_node, world_parent_field):
+    # world_parent_field is typically supervisor.getRoot().getField("children")
+    reparent_node(piece_node, world_parent_field)

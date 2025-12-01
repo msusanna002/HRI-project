@@ -51,9 +51,7 @@ PROTO TangramIsoPiece [
             Box { size 0.06 0.06 0.02 }
           ]
         }
-        physics Physics {
-          density IS density
-        }
+
       }
     ]
   }

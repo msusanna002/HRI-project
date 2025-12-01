@@ -53,9 +53,7 @@ PROTO TangramSquarePiece [
             Box { size 0.12 0.12 0.02 }
           ]
         }
-        physics Physics {
-          density IS density
-        }
+
       }
     ]
   }

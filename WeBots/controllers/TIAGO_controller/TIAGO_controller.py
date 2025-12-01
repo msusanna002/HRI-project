@@ -12,6 +12,7 @@ from scene_objects import init_scene_objects
 from arm_motion_utils import init_ik, update_held_piece
 from demo_utils import move_arm_to_all_pieces
 from head_motion_utils import make_head_look_at_target
+import arm_motion_utils
 
 
 
@@ -81,6 +82,6 @@ while robot.step(time_step) != -1:
             current_arm_task = None
 
     # 3. Always keep held piece glued to the hand
-    update_held_piece(robot_node)
-    make_head_look_at_target(robot_parts, robot_node, scene.current_object)
+    arm_motion_utils.update_held_piece(robot_node)
+    # make_head_look_at_target(robot_parts, robot_node, scene.current_object)
 

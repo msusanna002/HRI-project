@@ -55,9 +55,6 @@ PROTO TangramPara1Piece [
           ]
         }
 
-        physics Physics {
-          density IS density
-        }
       }
     ]
   }
