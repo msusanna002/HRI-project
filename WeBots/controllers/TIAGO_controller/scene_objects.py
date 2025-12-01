@@ -2,9 +2,12 @@
 
 from controller import Supervisor
 
+
+
 # Individual references (optional)
 puzzle_outline = None
 viewpoint = None
+current_object = None
 
 # Red pieces
 small_triangle_red = None

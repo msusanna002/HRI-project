@@ -9,13 +9,22 @@ def normalize_angle(a):
     return a
 
 
-def make_head_look_at_target(robot_parts, robot_node, target_pos):
+def make_head_look_at_target(robot_parts, robot_node, target_node):
     # Fields on robot and viewpoint
     base_translation_field = robot_node.getField("translation")
     base_rotation_field    = robot_node.getField("rotation")
-    
 
-    if base_translation_field is None or base_rotation_field is None or target_pos is None:
+    if target_node is None:
+        print("Target node is None, cannot look at target.")
+        return
+    # if target is a node, get its position
+    if target_node.getField("translation") is not None:
+        target_pos = target_node.getField("translation").getSFVec3f()
+    #if tarhet is viewpoint
+    elif target_node.getField("position") is not None:
+        target_pos = target_node.getField("position").getSFVec3f()
+    
+    if base_translation_field is None or base_rotation_field is None:
         print("Could not get translation/rotation/position fields.")
         return
 
@@ -92,4 +101,6 @@ def make_head_look_at_target(robot_parts, robot_node, target_pos):
     # Apply the (possibly clamped) positions
     head_pan.setPosition(-clamped_yaw)
     head_tilt.setPosition(-clamped_tilt)
+
+
     

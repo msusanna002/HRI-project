@@ -9,8 +9,11 @@ import config as cfg
 from keyboard_utils import check_keyboard
 from robot_setup import create_chain, setup_motors_and_sensors
 from scene_objects import init_scene_objects
-from arm_motion_utils import init_ik
+from arm_motion_utils import init_ik, update_held_piece
 from demo_utils import move_arm_to_all_pieces
+from head_motion_utils import make_head_look_at_target
+
+
 
 robot = Supervisor()
 time_step = int(robot.getBasicTimeStep())
@@ -60,8 +63,24 @@ initial_time = robot.getTime()
 print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 
 # move_arm_to_all_pieces(robot_node, x_offset=0.3, y_offset=0.43)
-
+scene.current_object = scene.square_red
+current_arm_task = None
 # Main loop
 while robot.step(time_step) != -1:
-    check_keyboard(robot_parts, keyboard, robot_node)
+        # 1. Read keyboard and maybe start a new task
+    new_task = check_keyboard(robot_parts, keyboard, robot_node)
+
+    # If a new task was requested and nothing is running, start it
+    if new_task is not None and current_arm_task is None:
+        current_arm_task = new_task
+
+    # 2. Advance the current arm task one step
+    if current_arm_task is not None:
+        current_arm_task.step()
+        if current_arm_task.done:
+            current_arm_task = None
+
+    # 3. Always keep held piece glued to the hand
+    update_held_piece(robot_node)
+    make_head_look_at_target(robot_parts, robot_node, scene.current_object)
 

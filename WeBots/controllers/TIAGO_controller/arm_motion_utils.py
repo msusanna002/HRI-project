@@ -1,11 +1,13 @@
 
 
-from coord_utils import world_to_robot
+from coord_utils import world_to_robot, robot_to_world
 import numpy as np
 import math
 import config as cfg
 import scene_objects as scene
+import numpy as np
 
+held_piece = None
 my_chain = None
 arm_sensors = None
 names = None
@@ -225,9 +227,68 @@ def motor_blocking(target_angle):
         err = abs(curr_rotation - target_angle)
         if err < 0.01:
             break
-    
-def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00, 
-                 lift=0.30, tableHeight=0.40):
+
+def grab_piece(piece_node, robot_node):
+    """
+    Start 'holding' this piece. Call this when the arm has reached it.
+    """
+    global held_piece
+    held_piece = piece_node
+    # Do one immediate update so it snaps into place
+    update_held_piece(robot_node)
+
+
+def drop_piece():
+    """
+    Stop holding the current piece. It will stay where it is.
+    """
+    global held_piece
+    held_piece = None
+
+
+def update_held_piece(robot_node):
+    """
+    If we are holding a piece, keep its translation under the end-effector.
+    Call this once every timestep from the main loop.
+    """
+
+    # print("Updating held piece position to:", held_piece.getDef() if held_piece else "None")
+    if held_piece is None:
+        return
+
+    # End-effector pose in robot base frame
+    pos_B, _ = get_end_effector_pose_from_sensors()
+
+    # Convert to world coords
+    pos_W = robot_to_world(pos_B, robot_node)
+
+    # Slight offset down so the piece sits under the tool instead of inside it
+    pos_W[2] += 0.02
+
+    held_piece.getField("translation").setSFVec3f(pos_W)
+
+# def grab_piece(piece_node, robot_node):
+#     """
+#     Grab piece with NO offset.
+#     Snap the piece directly to the end-effector position.
+#     """
+#     global held_piece
+#     held_piece = piece_node
+
+#     # Get end-effector position in robot frame
+#     hand_pos_B, _ = get_end_effector_pose_from_sensors()
+
+#     # Convert to world coordinates
+#     hand_pos_W = robot_to_world(hand_pos_B, robot_node)
+
+#     # Move piece directly to the hand position
+#     piece_node.getField("translation").setSFVec3f(hand_pos_W)
+
+#     print("[grab_piece] snapped piece to the hand")
+
+
+def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
+                 lift=0.30, tableHeight=0.40, do_grab=False, do_drop=False):
     """
     Move the arm to a given targetObject in three phases:
       1) go up to a safe height (>= min_z),
@@ -269,7 +330,7 @@ def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
     grasp_y = target_y + y_offset
 
     # Tool and object height compensation in z
-    GRIPPER_LENGTH = 0.05          # tune this for your TIAGo model
+    GRIPPER_LENGTH = 0.03          # tune this for your TIAGo model
     OBJECT_HALF_HEIGHT = 0.02   # tune this for your piece dimensions
 
     # target_z is likely object center; compute surface contact height
@@ -326,3 +387,220 @@ def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
         orientation=[0, 0, 1],
         orientation_mode="Z",
     )
+
+    if do_grab:
+        grab_piece(targetObject, robotNode)
+    if do_drop:
+        drop_piece()
+
+def move_piece(targetObject, destination, robotNode):
+    """
+    Move a piece from its current position to a destination position.
+    Both targetObject and destination are Webots nodes.
+    """
+    if targetObject is None or destination is None:
+        print("[move_piece] ERROR: targetObject or destination is None")
+        return
+
+    scene.current_object = targetObject
+    # 1) Move above the piece and grab it
+    arm_movement(targetObject, robotNode)
+    grab_piece(targetObject, robotNode)
+    # 3) Drop the piece
+    arm_movement(destination, robotNode)
+    drop_piece(targetObject, robotNode)
+
+    scene.current_object = scene.viewpoint
+
+# ---------------------------------------------------------------------
+# Non-blocking arm task
+# ---------------------------------------------------------------------
+class ArmMovementTask:
+    def __init__(self, targetObject, robotNode,
+                 x_offset=0.0, y_offset=0.0,
+                 lift=0.30, tableHeight=0.40,
+                 target_label="arm_task"):
+        self.targetObject = targetObject
+        self.robotNode = robotNode
+        self.phase = 1
+        self.done = False
+
+        self.phase1_commanded = False
+        self.phase2_commanded = False
+        self.phase3_commanded = False
+
+        if targetObject is None:
+            print("[ArmMovementTask] ERROR: targetObject is None")
+            self.done = True
+            return
+
+        # 1. Read target position in WORLD
+        obj_translation_field = targetObject.getField("translation")
+        target_world = obj_translation_field.getSFVec3f()
+        target_world_x = target_world[0]
+        target_world_y = target_world[1]
+        target_world_z = target_world[2]
+
+        # 2. Convert WORLD -> ROBOT frame
+        target_robot = world_to_robot(
+            [target_world_x, target_world_y, target_world_z],
+            robotNode
+        )
+
+        GRIPPER_LENGTH = 0.03          # tune this for your TIAGo model
+        OBJECT_HALF_HEIGHT = 0.02
+
+        grasp_x = target_robot[0] + x_offset
+        grasp_y = target_robot[1] + y_offset
+        grasp_z_surface = target_robot[2] + OBJECT_HALF_HEIGHT - GRIPPER_LENGTH
+
+        MIN_Z = tableHeight + 0.05   # safety margin
+        lifted_z = max(grasp_z_surface + lift, MIN_Z)
+        self.MIN_Z = MIN_Z
+        self.target_label = target_label
+
+        # 3. Read current end effector position (robot frame)
+        pos, _ = get_end_effector_pose_from_sensors()
+        current_x = pos[0]
+        current_y = pos[1]
+
+        # Phase targets in ROBOT frame
+        self.phase1_target = [current_x, current_y, lifted_z]
+        self.phase2_target = [grasp_x, grasp_y, lifted_z]
+        self.phase3_target = [grasp_x, grasp_y, max(grasp_z_surface, MIN_Z)]
+
+    def step(self):
+        if self.done:
+            return
+
+
+        # ----- Phase 1 -----
+        if self.phase == 1:
+            if not self.phase1_commanded:
+                # Send IK once
+                move_arm_to_position(
+                    self.phase1_target,
+                    orientation=[0, 0, 1],
+                    error_tolerance=0.1,
+                )
+                self.phase1_commanded = True
+
+            # Only FK + distance check each tick
+            err = distance_to_target(self.phase1_target)
+            if err < 0.1:
+                print("[ArmTask] Phase 1 reached")
+                self.phase = 2
+            return
+
+        # ----- Phase 2 -----
+        if self.phase == 2:
+            if not self.phase2_commanded:
+                move_arm_to_position(
+                    self.phase2_target,
+                    error_tolerance=0.05,
+                )
+                self.phase2_commanded = True
+
+            err = distance_to_target(self.phase2_target)
+            if err < 0.05:
+                print("[ArmTask] Phase 2 reached")
+                self.phase = 3
+            return
+
+        # ----- Phase 3 -----
+        if self.phase == 3:
+            if not self.phase3_commanded:
+                move_arm_to_position(
+                    self.phase3_target,
+                    orientation=[0, 0, 1],
+                    orientation_mode="Z",
+                    error_tolerance=0.01,
+                )
+                self.phase3_commanded = True
+
+            err = distance_to_target(self.phase3_target)
+            if err < 0.01:
+                print("[ArmTask] Phase 3 reached, task done")
+                self.done = True
+            return
+        
+
+class MovePieceTask:
+    """
+    High-level non-blocking task:
+      1) Move arm to the piece.
+      2) Grab the piece.
+      3) Move arm to the destination.
+      4) Drop the piece.
+
+    Call step() once per simulation step from the main loop.
+    """
+    def __init__(self, targetObject, destination, robotNode,
+                 x_offset=0.0, y_offset=0.0,
+                 lift=0.30, tableHeight=0.40):
+        self.targetObject = targetObject
+        self.destination = destination
+        self.robotNode = robotNode
+
+        if targetObject is None or destination is None:
+            print("[MovePieceTask] ERROR: targetObject or destination is None")
+            self.done = True
+            self.current_subtask = None
+            return
+
+        # Start by looking at / focusing on the picked object,
+        # just like your old move_piece did.
+        scene.current_object = targetObject
+
+        # First subtask: move to the piece
+        self.state = "to_source"
+        self.current_subtask = ArmMovementTask(
+            targetObject,
+            robotNode,
+            x_offset=x_offset,
+            y_offset=y_offset,
+            lift=lift,
+            tableHeight=tableHeight,
+            target_label="move_piece_to_source",
+        )
+        self.done = False
+
+    def step(self):
+        if self.done or self.current_subtask is None:
+            return
+
+        # Advance current arm subtask
+        self.current_subtask.step()
+
+        # If the current arm motion is not finished, we are done for this tick
+        if not self.current_subtask.done:
+            return
+
+        # If we just finished going to the source piece, grab it and start going to destination
+        if self.state == "to_source":
+            print("[MovePieceTask] Reached source, grabbing piece")
+            grab_piece(self.targetObject, self.robotNode)
+
+            # Next subtask: move to destination
+            self.state = "to_destination"
+            self.current_subtask = ArmMovementTask(
+                self.destination,
+                self.robotNode,
+                # You can tune offsets and lift for the placement motion too
+                x_offset=0.0,
+                y_offset=0.0,
+                lift=0.30,
+                tableHeight=0.40,
+                target_label="move_piece_to_destination",
+            )
+            return
+
+        # If we just finished going to the destination, drop and finish
+        if self.state == "to_destination":
+            print("[MovePieceTask] Reached destination, dropping piece")
+            drop_piece()
+            # Reset camera / focus, like in the old move_piece
+            scene.current_object = scene.viewpoint
+            self.done = True
+            self.current_subtask = None
+            return
