@@ -83,5 +83,5 @@ while robot.step(time_step) != -1:
 
     # 3. Always keep held piece glued to the hand
     arm_motion_utils.update_held_piece(robot_node)
-    # make_head_look_at_target(robot_parts, robot_node, scene.current_object)
+    make_head_look_at_target(robot_parts, robot_node, scene.current_object)
 

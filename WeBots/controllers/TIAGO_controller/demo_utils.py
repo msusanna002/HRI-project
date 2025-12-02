@@ -1,6 +1,7 @@
 # e.g. in keyboard_utils.py or demo_utils.py
 
 from arm_motion_utils import arm_movement
+from task_utils import MovePieceTask
 import scene_objects as scene
 
 
@@ -101,8 +102,7 @@ def move_arm_to_all_pieces(robot_node, ):
     print("[arm_demo] Visiting all TARGET pieces...")
     _move_arm_over_group(scene.target_objects, robot_node, "target")
 
-from arm_motion_utils import MovePieceTask  # if this code is in another file
-import scene_objects as scene
+
 
 class MoveAllPiecesTask:
     """

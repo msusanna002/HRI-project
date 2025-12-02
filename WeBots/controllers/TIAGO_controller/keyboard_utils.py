@@ -1,5 +1,6 @@
 from head_motion_utils import make_head_look_at_target
-from arm_motion_utils import arm_movement, ArmMovementTask, MovePieceTask
+from arm_motion_utils import arm_movement, ArmMovementTask
+from task_utils import MovePieceTask
 from controller import Keyboard
 import scene_objects as scene
 import config as cfg
