@@ -48,6 +48,7 @@ tangram_target_proto = None
 red_objects = {}
 blue_objects = {}
 target_objects = {}
+all_pieces = {}
 
 piece_target_pairs = [
 
@@ -114,7 +115,7 @@ def init_scene_objects(robot: Supervisor):
     global small_triangle_target, para_1_target, para_2_target
     global big_triangle_1_target, big_triangle_2_target, square_target
     global tangram_target_proto
-    global red_objects, blue_objects, target_objects
+    global red_objects, blue_objects, target_objects, all_pieces
 
     # 1) World-level nodes (not inside PROTOs)
     world_def_map = {
@@ -134,24 +135,25 @@ def init_scene_objects(robot: Supervisor):
         "big_triangle_1_blue": "BIG_TRIANGLE_1_BLUE",
         "big_triangle_2_blue": "BIG_TRIANGLE_2_BLUE",
         "square_blue": "SQUARE_BLUE",
-        # Tangram target PROTO instance
-        "tangram_target_proto": "TANGRAM_TARGET",  # DEF in the world file
     }
 
     red_objects = {}
     blue_objects = {}
     target_objects = {}
+    all_pieces = {}
 
     # Fetch all world-level nodes and auto-group red/blue
     for attr_name, def_name in world_def_map.items():
         node = get_node_or_warn(robot, def_name)
         globals()[attr_name] = node  # set e.g. small_triangle_red, square_blue, etc.
-
+        
         lname = attr_name.lower()
         if "red" in lname:
             red_objects[attr_name] = node
+            all_pieces[attr_name] = node
         elif "blue" in lname:
             blue_objects[attr_name] = node
+            all_pieces[attr_name] = node
 
     # 2) Internal target nodes inside the TangramPiecesTarget PROTO instance
     if tangram_target_proto is None:

@@ -13,6 +13,7 @@ from arm_motion_utils import init_ik, update_held_piece
 from demo_utils import move_arm_to_all_pieces
 from head_motion_utils import make_head_look_at_target
 import arm_motion_utils
+from game_manager import GameManager
 
 
 
@@ -61,7 +62,10 @@ keyboard.enable(time_step)
 
 initial_time = robot.getTime()
 
+
 print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
+#initialize game
+game = GameManager(robot_node)
 
 # move_arm_to_all_pieces(robot_node, x_offset=0.3, y_offset=0.43)
 scene.current_object = scene.square_red
@@ -81,6 +85,8 @@ while robot.step(time_step) != -1:
         if current_arm_task.done:
             current_arm_task = None
 
+    game.step()
+    
     # 3. Always keep held piece glued to the hand
     arm_motion_utils.update_held_piece(robot_node)
     make_head_look_at_target(robot_parts, robot_node, scene.current_object)

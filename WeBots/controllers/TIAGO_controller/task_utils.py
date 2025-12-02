@@ -3,60 +3,11 @@ import scene_objects as scene
 import arm_motion_utils as arm_utils
 from head_motion_utils import make_head_look_at_target
 
-def gather_gaze_data(initial_time, tracking_time):
-    """
-    Freeze the current arm configuration and make the robot
-    look at the person for `tracking_time` seconds of simulation.
-
-    initial_time:  float, usually robot.getTime() at the start
-    tracking_time: float, duration in seconds to keep gazing
-    """
-    # Always fetch from arm_utils at call time
-    robot = arm_utils.robot
-    robot_parts = arm_utils.robot_parts
-    time_step = arm_utils.time_step
-
-    if robot is None:
-        print("[gather_gaze_data] ERROR: robot is None (init_ik not called?)")
-        return
-
-    # Save the previous gaze target so we can restore it afterwards
-    previous_object = scene.current_object
-
-    # Get the robot node once (for head control)
-    robot_node = robot.getSelf()
-
-    # Set gaze target to the person (adjust to your actual person node)
-    # Change `scene.person` if your person node has another name
+#placeholder for gaze data gathering
+def gather_gaze_data():
     scene.current_object = scene.viewpoint
 
-    end_time = initial_time + tracking_time
-    number_of_logs = 3
-    log_index = 0   
-
-    if tracking_time > 0:
-        log_step = tracking_time / number_of_logs
-        next_log_time = initial_time + log_step
-    else:
-        log_step = 0.0
-        next_log_time = float("inf")
-
-    while robot.step(time_step) != -1:
-        now = robot.getTime()
-        if now >= end_time:
-            break
-
-        # Keep head oriented toward the person while we "freeze"
-        make_head_look_at_target(robot_parts, robot_node, scene.current_object)
-
-        if log_step > 0 and now >= next_log_time:
-            print(f"{log_index} / {number_of_logs} of gaze tracking")
-            next_log_time += log_step
-            log_index += 1
-
-    # Restore previous gaze target after tracking
-    print(f"{number_of_logs} / {number_of_logs} of gaze tracking")
-    scene.current_object = previous_object
+    return True 
 
 
 class MovePieceTask:
@@ -136,16 +87,7 @@ class MovePieceTask:
             # print("[MovePieceTask] Reached destination, dropping piece")
             drop_piece()
             # Next subtask: move to destination
-            self.state = "look_at_person"
-            # Reset camera / focus, like in the old move_piece
-            return
-        
-        # If we just finished going to the destination, drop and finish
-        if self.state == "look_at_person":
-            print("[MovePieceTask] Dropped piece, looking at person")
-            # Do NOT change scene.current_object here; gather_gaze_data handles it.
-            initial_time = arm_utils.robot.getTime()
-            gather_gaze_data(initial_time, 1.5)
             self.done = True
             self.current_subtask = None
+            # Reset camera / focus, like in the old move_piece
             return

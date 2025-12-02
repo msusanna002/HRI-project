@@ -1,11 +1,14 @@
 #VRML_SIM R2025a utf8
 
-PROTO TangramRightPiece [
+PROTO TangramRightPiece1 [
   field SFColor    color        0 1 0
   field SFString   name         "Right"
   field SFVec3f    translation  0 0 0
   field SFRotation rotation     0 0 1 0
   field SFVec3f    scale        0 0 0
+  field SFBool     isPlaced     FALSE
+  field SFVec3f    scatteredPos 0 0 0
+  field SFVec3f    targetPos  0 0 0
 ] {
   Transform {
     translation IS translation
