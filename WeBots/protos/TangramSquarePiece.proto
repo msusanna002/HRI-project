@@ -2,7 +2,6 @@
 
 PROTO TangramSquarePiece [
   field SFColor    color        0 1 1
-  field SFFloat    density      300
   field SFString   name         "Square"
   field SFVec3f    translation  0 0 0
   field SFRotation rotation     0 0 1 0

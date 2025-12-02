@@ -27,6 +27,55 @@ def _move_arm_over_group(piece_dict, robot_node, group_name):
         print(f"[arm_demo] Moving arm to {group_name} piece '{name}'")
         arm_movement(node, robot_node)
 
+def _move_arm_over_group_back_and_forth(piece_dict1, piece_dict2, robot_node,
+                                        group_name1, group_name2):
+    """
+    Helper: move arm back and forth between two groups.
+
+    piece_dict1, piece_dict2: dict[str, Node]
+    robot_node: Node of the robot (Supervisor.getFromDef("TIAGO") or similar)
+    group_name1, group_name2: string labels for debug prints ("red", "blue", etc.)
+    """
+
+    if not piece_dict1 and not piece_dict2:
+        print(f"[arm_demo] WARNING: No pieces in {group_name1} or {group_name2} groups.")
+        return
+
+    if not piece_dict1:
+        print(f"[arm_demo] WARNING: No pieces in {group_name1} group.")
+        return
+
+    if not piece_dict2:
+        print(f"[arm_demo] WARNING: No pieces in {group_name2} group.")
+        return
+
+    # Deterministic order in each group
+    names1 = sorted(piece_dict1.keys())
+    names2 = sorted(piece_dict2.keys())
+
+    # Only iterate up to the shorter list length
+    limit = min(len(names1), len(names2))
+    if limit == 0:
+        print(f"[arm_demo] WARNING: No overlapping indices for {group_name1} and {group_name2}.")
+        return
+
+    for i in range(limit):
+        name1 = names1[i]
+        name2 = names2[i]
+
+        node1 = piece_dict1.get(name1)
+        node2 = piece_dict2.get(name2)
+
+        if node1 is None or node2 is None:
+            print(f"[arm_demo] WARNING: Node '{name1}' in {group_name1} "
+                  f"or '{name2}' in {group_name2} is None, skipping.")
+            continue
+
+        print(f"[arm_demo] Moving arm to {group_name1} piece '{name1}' "
+              f"then {group_name2} piece '{name2}'")
+        arm_movement(node1, robot_node)
+        arm_movement(node2, robot_node) 
+
 
 def move_arm_to_all_pieces(robot_node, ):
     """

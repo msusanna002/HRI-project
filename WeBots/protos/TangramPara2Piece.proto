@@ -2,7 +2,6 @@
 
 PROTO TangramPara2Piece [
   field SFColor    color        1 1 0
-  field SFFloat    density      300
   field SFString   name         "Para2"
   field SFVec3f    translation  0 0 0
   field SFRotation rotation     0 0 1 0

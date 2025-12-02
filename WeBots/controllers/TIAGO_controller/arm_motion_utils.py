@@ -6,6 +6,7 @@ import math
 import config as cfg
 import scene_objects as scene
 import numpy as np
+import config as config
 
 held_piece = None
 my_chain = None
@@ -50,16 +51,44 @@ import traceback
 def debug_log(*args):
     print(*args, flush=True)
 
-def send_joint_pose(pose_dict):
+def send_joint_pose(pose):
     """
     Directly command a joint-space pose, ignoring IK.
     Used for 'rescue' when the arm is stuck or IK is bad.
+
+    `pose` can be:
+      - dict[str, float]: {joint_name: angle}
+      - list/tuple[float]: angles in the same order as `names` / `robot_parts`
     """
-    for jname, angle in pose_dict.items():
-        if jname in names:
-            idx = names.index(jname)
+    # Case 1: dict mapping joint names to angles
+    if isinstance(pose, dict):
+        for jname, angle in pose.items():
+            if jname in names:
+                idx = names.index(jname)
+                motor = robot_parts[idx]
+                motor.setPosition(angle)
+            else:
+                print(f"[send_joint_pose] WARNING: joint name '{jname}' not in known names, skipping.")
+        return
+
+    # Case 2: list or tuple of angles in fixed order
+    if isinstance(pose, (list, tuple)):
+        if len(pose) != len(robot_parts):
+            print(f"[send_joint_pose] WARNING: pose length {len(pose)} "
+                  f"does not match number of robot parts {len(robot_parts)}. "
+                  f"Will only set the first {min(len(pose), len(robot_parts))} joints.")
+
+        for idx, angle in enumerate(pose):
+            if idx >= len(robot_parts):
+                break
             motor = robot_parts[idx]
             motor.setPosition(angle)
+        return
+
+    # Fallback for unexpected types
+    print(f"[send_joint_pose] ERROR: Unsupported pose type {type(pose)}. "
+          f"Expected dict or list/tuple.")
+
 
 def rescue_arm(reason="unknown"):
     """
@@ -67,7 +96,7 @@ def rescue_arm(reason="unknown"):
     You can log the reason for debugging.
     """
     print(f"[RESCUE] Triggered rescue_arm due to: {reason}")
-    send_joint_pose(scene.JOINT_TARGET_POS)
+    send_joint_pose(config.JOINT_TARGET_POS)
 
 # def get_held_objects_children_field():
 #     """
@@ -333,7 +362,6 @@ def move_arm_to_position(target_xyz,
             print(f"[IK] Non-finite error on attempt {k}, skipping")
             continue
 
-        print(f"[IK] attempt {k}: target = {attempt_target}, err = {err:.4f}")
 
         # Track best attempt so far
         if err < best_err:
@@ -612,7 +640,7 @@ def update_held_piece(robot_node):
 
 
 def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
-                 lift=0.30, tableHeight=0.40, do_grab=False, do_drop=False):
+                 lift=0.10, tableHeight=0.40, do_grab=False, do_drop=False):
     """
     Move the arm to a given targetObject in three phases:
       1) go up to a safe height (>= min_z),
@@ -674,7 +702,7 @@ def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
     # -----------------------------------------------
     # Phase 1: go straight up from current position
     # -----------------------------------------------
-    phase1_z = max(current_z, MIN_Z + lift)
+    phase1_z = max(current_z, MIN_Z)
     phase1_target = [current_x, current_y, phase1_z]
 
     move_arm_to_position_blocking(
@@ -687,7 +715,7 @@ def arm_movement(targetObject, robotNode, x_offset=0.00, y_offset=0.00,
     # -----------------------------------------------
     # Phase 2: move horizontally above the target
     # -----------------------------------------------
-    phase2_z = max(grasp_z_surface + lift, MIN_Z + lift)
+    phase2_z = max(grasp_z_surface , MIN_Z)
     phase2_target = [grasp_x, grasp_y, phase2_z]
 
     move_arm_to_position_blocking(
@@ -757,6 +785,11 @@ class ArmMovementTask:
         self.stuck_steps = 0
         self.STUCK_MAX_STEPS = 40
         self.RESCUE_ERROR_LIMIT = 0.2
+        self.in_rescue = False
+        self.rescue_wait_steps = 0
+
+        self.rescue_count = 0
+        self.MAX_RESCUES = 3
 
         if targetObjectVec is None:
             print("[ArmMovementTask] ERROR: targetObject is None")
@@ -786,6 +819,8 @@ class ArmMovementTask:
         self.MIN_Z = MIN_Z
         self.target_label = target_label
 
+        
+
         # 3. Read current end effector position (robot frame)
         pos, _ = get_end_effector_pose_from_sensors()
         current_x = pos[0]
@@ -799,44 +834,90 @@ class ArmMovementTask:
     def _check_rescue(self, err):
         """
         Common rescue logic for all phases.
+        Returns True if a rescue was triggered or task ended.
         """
         if not np.isfinite(err):
-            print(f"[ArmTask] Non-finite error in {self.target_label}, rescuing")
-            rescue_arm(reason=f"non-finite error in {self.target_label}")
-            self.done = True
-            return True
+            print(f"[ArmTask] Non-finite error in {self.target_label}")
+            return self._trigger_rescue("non-finite error")
 
         # track stuck steps when error is not improving
         if self.last_err is not None and err >= self.last_err - 1e-4:
             self.stuck_steps += 1
-            print (self.stuck_steps)
+            print(self.stuck_steps)
         else:
             self.stuck_steps = 0
 
         self.last_err = err
 
         # If error is large and we are stuck for too long, rescue
-        if err > self.RESCUE_ERROR_LIMIT and self.stuck_steps > self.STUCK_MAX_STEPS:
-            print(f"[ArmTask] Stuck with error {err:.4f} in {self.target_label}, rescuing")
-            rescue_arm(reason=f"stuck in {self.target_label}")
-            self.done = True
-            return True
+        if self.stuck_steps > self.STUCK_MAX_STEPS:
+            print(f"[ArmTask] Stuck with error {err:.4f} in {self.target_label}")
+            return self._trigger_rescue(f"stuck, err={err:.4f}")
 
         return False
+
+
+    
+    def _trigger_rescue(self, reason):
+        """
+        Called when the arm is considered stuck or the error is invalid.
+        Sends a neutral pose and prepares to redo the CURRENT phase
+        after a short waiting period.
+        """
+        print(f"[ArmTask] Rescue triggered in {self.target_label}: {reason}")
+        rescue_arm(reason=reason)  # this calls send_joint_pose(config.JOINT_TARGET_POS)
+
+        self.rescue_count += 1
+        if self.rescue_count > self.MAX_RESCUES:
+            print(f"[ArmTask] Too many rescues in {self.target_label}, giving up.")
+            self.done = True
+            return True  # tell caller to stop
+
+        # Put the task into "rescue wait" mode so the arm can reach neutral
+        self.in_rescue = True
+        self.rescue_wait_steps = 50   # tune this number as needed
+
+        # Reset phase command flag so the current phase will recompute IK
+        if self.phase == 1:
+            self.phase1_commanded = False
+        elif self.phase == 2:
+            self.phase2_commanded = False
+        elif self.phase == 3:
+            self.phase3_commanded = False
+
+        # Reset stuck tracking
+        self.stuck_steps = 0
+        self.last_err = None
+
+        # Do NOT mark task done; we intend to retry
+        return True
+
+
 
     def step(self):
         if self.done:
             return
 
+         # If we are currently in rescue mode, just wait a few steps to let
+        # the arm move to its neutral pose before re-commanding the phase.
+        if self.in_rescue:
+            if self.rescue_wait_steps > 0:
+                self.rescue_wait_steps -= 1
+                return  # keep waiting
+            # done waiting, exit rescue mode and retry current phase
+            print(f"[ArmTask] Rescue wait finished in {self.target_label}, retrying phase {self.phase}")
+            self.in_rescue = False
+            # fall through to the normal phase logic below
 
         # ----- Phase 1 -----
         if self.phase == 1:
             if not self.phase1_commanded:
                 # Send IK once
+                # send_joint_pose(config.JOINT_TARGET_POS)
                 move_arm_to_position(
                     self.phase1_target,
                     orientation=[0, 0, 1],
-                    error_tolerance=0.1,
+                    error_tolerance=0.2,
                 )
                 self.phase1_commanded = True
 
@@ -860,7 +941,7 @@ class ArmMovementTask:
 
             err = distance_to_target(self.phase2_target)
             if self._check_rescue(err):
-                return
+                return 
             if err < 0.05:
                 print("[ArmTask] Phase 2 reached")
                 self.phase = 3

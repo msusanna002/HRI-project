@@ -32,9 +32,9 @@ big_triangle_2_target = None
 square_target = None
 
 # target Positions
-small_triangle_target_pos = [0.66, -0.67, 0.52]
-para_1_target_pos = [0.225, -0.55, 0.52]
-para_2_target_pos = [0.225, -0.815, 0.52]
+small_triangle_target_pos = [0.62, -0.67, 0.52]
+para_2_target_pos = [0.225, -0.56, 0.52]
+para_1_target_pos = [0.225, -0.79, 0.52]
 big_triangle_1_target_pos = [0.535, -0.64, 0.52]
 big_triangle_2_target_pos = [0.461796, -0.717877, 0.52]
 square_target_pos = [0.301374, -0.677455, 0.52]

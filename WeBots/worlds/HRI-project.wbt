@@ -22,8 +22,8 @@ WorldInfo {
   basicTimeStep 16
 }
 DEF USER_CAMERA Viewpoint {
-  orientation -0.2709412456447361 0.29215311098745245 0.9171899482380036 1.599792262929914
-  position -0.1546677519005423 -3.609603452519876 2.7727212119783546
+  orientation -0.2685482568654226 0.26737187924631584 0.9254156427913007 1.6707081260528296
+  position 0.02075785424841152 -3.0901302336787575 2.394631371778438
   description "USER_CAMERA"
 }
 TexturedBackground {
@@ -33,8 +33,12 @@ TexturedBackgroundLight {
 Floor {
 }
 DEF TIAGO_ROBOT Tiago {
-  translation 0.3011057400621216 0.004237650147787087 0.09321644372433197
-  rotation -0.006752897685739128 0.005167424466931925 0.9999638473951068 -2.3568018338290324
+  hidden linearVelocity_0 0.0016232224954866974 -0.0008065508281532225 4.91356081070033e-05
+  hidden angularVelocity_0 0.003030543484626493 0.006133353303734351 4.82117033485767e-05
+  hidden linearVelocity_45 0.0010504104897655327 -0.0005236827512095327 7.032096847993314e-05
+  hidden angularVelocity_45 0.0030305452102929054 0.006133356188163073 4.821167435030219e-05
+  translation 0.3006425695838097 0.002825741735727306 0.09306927435250567
+  rotation -0.012036733999327302 -0.0010890112286925 0.9999269628773759 -2.3568416220121136
   controller "TIAGO_Controller"
   supervisor TRUE
   endEffectorSlot DEF GRIPPER_LINK CustomTiagoGripper {
@@ -76,13 +80,13 @@ DEF SMALL_TRIANGLE_RED TangramIsoPiece {
 DEF PARALELLOGRAM_1_RED TangramPara2Piece {
   color 1 0 0
   name "para_1_red"
-  translation -0.27 0.13 0.52
+  translation -0.34 -0.5 0.52
   scale 0.9 0.9 0.9
 }
 DEF PARALELLOGRAM_2_RED TangramPara1Piece {
   color 1 0 0
   name "para_2_red"
-  translation -0.3 0.05 0.52
+  translation -0.35 -0.42 0.52
   scale 0.9 0.9 0.9
 }
 DEF BIG_TRIANGLE_1_RED TangramRightPiece {
@@ -101,31 +105,31 @@ DEF BIG_TRIANGLE_2_RED TangramRightPiece {
 DEF SQUARE_RED TangramSquarePiece {
   color 1 0 0
   name "square_red"
-  translation -0.18 -0.38 0.52
+  translation -0.23 -0.34 0.52
   scale 0.9 0.9 0.9
 }
 DEF SMALL_TRIANGLE_BLUE TangramIsoPiece {
   color 0 0 1
   name "small_triangle_blue"
-  translation -0.09 -0.54 0.52
+  translation -0.13 -0.59 0.52
   scale 0.9 0.9 0.9
 }
-DEF PARALELLOGRAM_1_BLUE TangramPara2Piece {
+DEF PARALELLOGRAM_1_BLUE TangramPara1Piece {
   color 0 0 1
   name "para_1_blue"
   translation -0.41 0.15 0.52
   scale 0.9 0.9 0.9
 }
-DEF PARALELLOGRAM_2_BLUE TangramPara1Piece {
+DEF PARALELLOGRAM_2_BLUE TangramPara2Piece {
   color 0 0 1
   name "para_2_blue"
-  translation -0.39 -0.4 0.52
+  translation -0.3 -0.56 0.52
   scale 0.9 0.9 0.9
 }
 DEF BIG_TRIANGLE_1_BLUE TangramRightPiece {
   color 0 0 1
   name "big_triangle_1_blue"
-  translation -0.24 -0.57 0.52
+  translation -0.04 -0.53 0.52
   scale 0.9 0.9 0.9
 }
 DEF BIG_TRIANGLE_2_BLUE TangramRightPiece {
@@ -138,10 +142,8 @@ DEF BIG_TRIANGLE_2_BLUE TangramRightPiece {
 DEF SQUARE_BLUE TangramSquarePiece {
   color 0 0 1
   name "square_blue"
-  translation -0.05 -0.72 0.52
+  translation -0.05 -0.73 0.52
   scale 0.9 0.9 0.9
-}
-DEF TANGRAM_TARGET TangramPiecesTarget {
 }
 Solid {
   translation 0.2 -0.16 0.52

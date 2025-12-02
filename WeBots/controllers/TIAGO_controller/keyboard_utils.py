@@ -3,7 +3,7 @@ from arm_motion_utils import arm_movement, ArmMovementTask, MovePieceTask
 from controller import Keyboard
 import scene_objects as scene
 import config as cfg
-from demo_utils import move_arm_to_all_pieces, create_move_all_pieces_task
+from demo_utils import move_arm_to_all_pieces, create_move_all_pieces_task, _move_arm_over_group_back_and_forth
 
 def check_keyboard(robot_parts, keyboard, robot_node):
     global last_space_down, robot_view_target  
@@ -46,7 +46,7 @@ def check_keyboard(robot_parts, keyboard, robot_node):
         )
         
     elif key == ord('2'):
-        print("Move red parallelogram to its target position")
+        print("Move red parallelogram 2 to its target position")
         arm_task = MovePieceTask(
             scene.para_2_red,          # the piece
             scene.para_2_target_pos,   # the target position
@@ -54,11 +54,49 @@ def check_keyboard(robot_parts, keyboard, robot_node):
         )
 
     elif key == ord('3'):
-        print("Move red small triangle to its target position")
+        print("Move red parallelogram 1 to its target position")
         arm_task = MovePieceTask(
-            scene.small_triangl_red,          # the piece
-            scene.small_triangl_target_pos,   # the target position
+            scene.para_1_red,          # the piece
+            scene.para_1_target_pos,   # the target position
             robot_node
+        )
+
+    elif key == ord('4'):
+        print("Move blue big triangle 1 to its target position")
+        arm_task = MovePieceTask(
+            scene.big_triangle_1_blue,          # the piece
+            scene.big_triangle_1_target_pos,   # the target position
+            robot_node
+        )
+    
+    elif key == ord('5'):
+        print("Move blue square to its target position")
+        arm_task = MovePieceTask(
+            scene.square_blue,          # the piece
+            scene.square_target_pos,   # the target position
+            robot_node
+        )
+
+    elif key == ord('6'):
+        print("Move blue square to its target position")
+        arm_task = MovePieceTask(
+            scene.small_triangle_blue,          # the piece
+            scene.small_triangle_target_pos,   # the target position
+            robot_node
+        )
+
+    elif key == ord('4'):
+        print("Move red small triangle to its target position")
+        arm_task = move_arm_to_all_pieces(robot_node)
+
+    elif key == ord('5'):
+        print("Move red small triangle to its target position")
+        arm_task = _move_arm_over_group_back_and_forth(
+            scene.red_objects,
+            scene.target_objects,
+            robot_node,
+            "red",
+            "target"
         )
     
 

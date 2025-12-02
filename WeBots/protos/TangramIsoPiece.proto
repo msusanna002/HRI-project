@@ -2,7 +2,6 @@
 
 PROTO TangramIsoPiece [
   field SFColor    color        1 0 0
-  field SFFloat    density      300
   field SFString   name         "Iso"
   field SFVec3f    translation  0 0 0
   field SFRotation rotation     0 0 1 0

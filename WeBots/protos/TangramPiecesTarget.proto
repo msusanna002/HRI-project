@@ -14,7 +14,7 @@ PROTO TangramPiecesTarget [
     translation IS origin
     children [
 DEF SMALL_TRIANGLE_TARGET Pose {
-  translation 0.66 -0.67 0.52
+  translation 0.62 -0.67 0.52
   rotation 0 0.7071067811865477 0.7071067811865477 0
   children [
     TangramIsoPiece {
@@ -54,8 +54,8 @@ DEF SQUARE_TARGET Pose {
     }
   ]
 }
-DEF PARALELLOGRAM_1_TARGET Pose {
-  translation 0.225 -0.55 0.52
+DEF PARALELLOGRAM_2_TARGET Pose {
+  translation 0.225 -0.60 0.52
   children [
     TangramPara1Piece {
       name "para_1_target"
@@ -63,11 +63,11 @@ DEF PARALELLOGRAM_1_TARGET Pose {
     }
   ]
 }
-DEF PARALELLOGRAM_2_TARGET Pose {
-  translation 0.225 -0.815 0.52
+DEF PARALELLOGRAM_1_TARGET Pose {
+  translation 0.225 -0.79 0.52
   children [
     TangramPara2Piece {
-      name "para_2_target"
+      name "para_1_target"
       scale 1 1 1
     }
   ]
