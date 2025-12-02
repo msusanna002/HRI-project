@@ -90,13 +90,19 @@ def send_joint_pose(pose):
           f"Expected dict or list/tuple.")
 
 
-def rescue_arm(reason="unknown"):
+def rescue_arm(iter, reason="unknown", ):
     """
     Try to unlock the arm by sending it to SAFE_ARM_POSE.
     You can log the reason for debugging.
     """
     print(f"[RESCUE] Triggered rescue_arm due to: {reason}")
-    send_joint_pose(config.JOINT_TARGET_POS)
+
+    pose = None
+    if (iter%3 == 0): pose = config.JOINT_TARGET_POS
+    if (iter%3 == 1): pose = config.JOINT_RESCUE_POS_2
+    if (iter%3 == 2): pose = config.JOINT_RESCUE_POS_3
+    print("iter=" , iter, "resque Pose = ", pose)
+    send_joint_pose(pose)
 
 # def get_held_objects_children_field():
 #     """
@@ -589,7 +595,7 @@ def grab_piece(piece_node, robotNode):
         if phys_node is not None:
             phys_field.setSFNode(None)
 
-    print("[grab_piece] Now holding", piece_node.getDef())
+    # print("[grab_piece] Now holding", piece_node.getDef())
 
 
 
@@ -610,7 +616,7 @@ def drop_piece():
     #     # Create a Physics node via importMFNodeFromString:
     #     phys_field.importMFNodeFromString(-1, "Physics {}")
 
-    print("[drop_piece] Dropped", held_piece.getDef())
+    # print("[drop_piece] Dropped", held_piece.getDef())
     held_piece = None
 
 
@@ -843,7 +849,7 @@ class ArmMovementTask:
         # track stuck steps when error is not improving
         if self.last_err is not None and err >= self.last_err - 1e-4:
             self.stuck_steps += 1
-            print(self.stuck_steps)
+            # print(self.stuck_steps)
         else:
             self.stuck_steps = 0
 
@@ -865,7 +871,7 @@ class ArmMovementTask:
         after a short waiting period.
         """
         print(f"[ArmTask] Rescue triggered in {self.target_label}: {reason}")
-        rescue_arm(reason=reason)  # this calls send_joint_pose(config.JOINT_TARGET_POS)
+        rescue_arm(self.rescue_count, reason=reason)  # this calls send_joint_pose(config.JOINT_TARGET_POS)
 
         self.rescue_count += 1
         if self.rescue_count > self.MAX_RESCUES:
@@ -926,7 +932,7 @@ class ArmMovementTask:
             if self._check_rescue(err):
                 return
             if err < 0.1:
-                print("[ArmTask] Phase 1 reached")
+                # print("[ArmTask] Phase 1 reached")
                 self.phase = 2
             return
 
@@ -943,7 +949,7 @@ class ArmMovementTask:
             if self._check_rescue(err):
                 return 
             if err < 0.05:
-                print("[ArmTask] Phase 2 reached")
+                # print("[ArmTask] Phase 2 reached")
                 self.phase = 3
             return
 
@@ -962,7 +968,7 @@ class ArmMovementTask:
             if self._check_rescue(err):
                 return
             if err < 0.01:
-                print("[ArmTask] Phase 3 reached, task done")
+                # print("[ArmTask] Phase 3 reached, task done")
                 self.done = True
             return
         
@@ -1022,7 +1028,7 @@ class MovePieceTask:
 
         # If we just finished going to the source piece, grab it and start going to destination
         if self.state == "to_source":
-            print("[MovePieceTask] Reached source, grabbing piece")
+            # print("[MovePieceTask] Reached source, grabbing piece")
             grab_piece(self.targetObject, self.robotNode)
 
             # Next subtask: move to destination
@@ -1041,7 +1047,7 @@ class MovePieceTask:
 
         # If we just finished going to the destination, drop and finish
         if self.state == "to_destination":
-            print("[MovePieceTask] Reached destination, dropping piece")
+            # print("[MovePieceTask] Reached destination, dropping piece")
             drop_piece()
             # Reset camera / focus, like in the old move_piece
             scene.current_object = scene.viewpoint
