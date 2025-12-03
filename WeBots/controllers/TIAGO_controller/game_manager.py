@@ -1,10 +1,10 @@
-from task_utils import MovePieceTask, gather_gaze_data
+from task_utils import MovePieceTask
 import scene_objects as scene
 import arm_motion_utils as arm_utils
 import random
 
 class GameManager:
-    def __init__(self, robot_node):
+    def __init__(self, robot_node, gaze_duration):
         self.robot_node = robot_node
         self.finished = False
 
@@ -16,21 +16,15 @@ class GameManager:
         self.current_arm_task = None
         self.gaze_running = False
         self.gaze_start_time = 0.0
-        self.gaze_duration = 2.0
+        self.gaze_duration = gaze_duration
         self.placed_pieces = []
         self.current_step = 0
 
-
-
-    def get_next_piece(self):
-        print("Getting next piece")
-
-        possible_pieces = []
-
+    def get_scattered_pieces(self):
+        scattered = []
         for name, node in scene.all_pieces.items():
             if node is None:
                 continue
-
             field = node.getField("isPlaced")
             if field is None:
                 is_placed = False
@@ -43,33 +37,57 @@ class GameManager:
                     is_placed = False
 
             if not is_placed:
-                skip = False
-                for placed in self.placed_pieces:
-                    if node.getTypeName() == placed.getTypeName():
-                        skip = True
-                        break
+                scattered.append(node)
+        return scattered
+    
+    def filter_out_placed_types(self, pieces):
+        unplaced = []
+        for node in pieces:
+            is_placed = False
+            for placed in self.placed_pieces:
+                if node.getTypeName() == placed.getTypeName():
+                    is_placed = True
+                    break
+            if not is_placed:
+                unplaced.append(node)
+        return unplaced
 
-                if skip:
-                    continue  # do not append this node
 
-                possible_pieces.append(node)
+    def get_next_piece(self):
+        print("Getting next piece")
+
+        possible_pieces = []
+
+        scattered_pieces = self.get_scattered_pieces()
+        possible_pieces = self.filter_out_placed_types(scattered_pieces)
 
         print("Possible pieces to place:", [p.getDef() for p in possible_pieces])
 
-        if not possible_pieces:
+        #return None if there are no possible pieces left, ie. puzzle is complete
+        if len(possible_pieces) == 0:
             return None
 
+        #randomly choose one of the possible pieces
         i = random.randint(0, len(possible_pieces) - 1)
         print("random choice index:", i)
 
         return possible_pieces[i]
 
-
     
-    #Placeholder for LLM integration
+    #TODO: LLM integration
     def LLM_get_next_piece(self):
         next_piece = self.get_next_piece()
         return next_piece
+    
+    #TODO: Gaze data gathering integration
+    def gather_gaze_data():
+        scene.current_object = scene.viewpoint
+        random_value = random.randint(0, 1)
+        if random_value == 0:
+            return True
+        else:
+            return False 
+
 
     def all_pieces_placed(self):
         return all(p.is_placed for p in scene.all_pieces)
@@ -90,9 +108,12 @@ class GameManager:
 
         # 2. If gaze tracking is running
         elif self.gaze_running and self.state == "gaze_track":
-            now = arm_utils.robot.getTime()
+            
             #placeholder for gaze data gathering
-            self.was_correct_move = gather_gaze_data()
+            self.was_correct_move = self.gather_gaze_data()
+
+            #printing log
+            now = arm_utils.robot.getTime()
             delta = now - self.gaze_start_time
             steps = 5
             gaze_time_step = self.gaze_duration / steps

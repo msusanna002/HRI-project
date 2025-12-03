@@ -47,7 +47,7 @@ tangram_target_proto = None
 # Dictionaries for grouping by color
 red_objects = {}
 blue_objects = {}
-target_objects = {}
+target_objects = {} #for debugging not used in code logic
 all_pieces = {}
 
 piece_target_pairs = [

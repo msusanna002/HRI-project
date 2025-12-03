@@ -65,7 +65,8 @@ initial_time = robot.getTime()
 
 print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 #initialize game
-game = GameManager(robot_node)
+#TODO: adjust gaze duration as needed
+game = GameManager(robot_node, gaze_duration=2.0)
 
 # move_arm_to_all_pieces(robot_node, x_offset=0.3, y_offset=0.43)
 scene.current_object = scene.square_red

@@ -4,14 +4,6 @@ import arm_motion_utils as arm_utils
 from head_motion_utils import make_head_look_at_target
 import random
 
-#placeholder for gaze data gathering
-def gather_gaze_data():
-    scene.current_object = scene.viewpoint
-    random_value = random.randint(0, 1)
-    if random_value == 0:
-        return True
-    else:
-        return False 
 
 
 class MovePieceTask:
