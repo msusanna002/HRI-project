@@ -91,12 +91,12 @@ def make_head_look_at_target(robot_parts, robot_node, target_node):
     clamped_yaw  = max(pan_min,  min(pan_max,  desired_pan))
     clamped_tilt = max(tilt_min, min(tilt_max, desired_tilt))
 
-    if abs(clamped_yaw - desired_pan) > 1e-3 or abs(clamped_tilt - desired_tilt) > 1e-3:
-        print(
-            "Head target out of range. "
-            f"Requested pan={desired_pan:.2f}, tilt={desired_tilt:.2f} "
-            f"→ clamped to pan={clamped_yaw:.2f}, tilt={clamped_tilt:.2f}"
-        )
+    # if abs(clamped_yaw - desired_pan) > 1e-3 or abs(clamped_tilt - desired_tilt) > 1e-3:
+    #     print(
+    #         "Head target out of range. "
+    #         f"Requested pan={desired_pan:.2f}, tilt={desired_tilt:.2f} "
+    #         f"→ clamped to pan={clamped_yaw:.2f}, tilt={clamped_tilt:.2f}"
+    #     )
 
     # Apply the (possibly clamped) positions
     head_pan.setPosition(-clamped_yaw)

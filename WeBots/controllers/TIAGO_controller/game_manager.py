@@ -92,7 +92,7 @@ class GameManager:
         elif self.gaze_running and self.state == "gaze_track":
             now = arm_utils.robot.getTime()
             #placeholder for gaze data gathering
-            self.was_correct_move = gather_gaze_data(self.gaze_start_time, self.gaze_duration)
+            self.was_correct_move = gather_gaze_data()
             delta = now - self.gaze_start_time
             steps = 5
             gaze_time_step = self.gaze_duration / steps
@@ -104,6 +104,7 @@ class GameManager:
             
             if now - self.gaze_start_time >= self.gaze_duration:
                 print("Finished gaze tracking")
+                print("Gaze tracking result: ", self.was_correct_move)
                 self.current_step = 0
                 self.gaze_running = False
                 if self.was_correct_move:
