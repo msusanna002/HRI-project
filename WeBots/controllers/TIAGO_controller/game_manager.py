@@ -80,7 +80,7 @@ class GameManager:
         return next_piece
     
     #TODO: Gaze data gathering integration
-    def gather_gaze_data():
+    def gather_gaze_data(self):
         scene.current_object = scene.viewpoint
         random_value = random.randint(0, 1)
         if random_value == 0:
