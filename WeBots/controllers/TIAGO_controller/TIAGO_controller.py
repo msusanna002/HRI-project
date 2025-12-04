@@ -10,16 +10,16 @@ from keyboard_utils import check_keyboard
 from robot_setup import create_chain, setup_motors_and_sensors
 from scene_objects import init_scene_objects
 from arm_motion_utils import init_ik, update_held_piece
-from demo_utils import move_arm_to_all_pieces
 from head_motion_utils import make_head_look_at_target
 import arm_motion_utils
 from game_manager import GameManager
 
 
-
+#initialize the robot
 robot = Supervisor()
 time_step = int(robot.getBasicTimeStep())
 
+# get urdf document
 HERE = os.path.dirname(__file__)
 URDF_PATH = os.path.join(HERE, "tiago_urdf.urdf")
 
@@ -47,6 +47,7 @@ robot_node = robot.getSelf()
 if robot_node is None:
     print("Error: getSelf() returned None, something is wrong with the controller binding.")
 
+#initi  
 init_scene_objects(robot)
 init_ik(my_chain, arm_sensors, cfg.JOINT_NAMES, robot_parts, robot, time_step)
 
@@ -66,7 +67,7 @@ initial_time = robot.getTime()
 print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 #initialize game
 #TODO: adjust gaze duration as needed
-game = GameManager(robot_node, gaze_duration=2.0)
+game = GameManager(robot_node, gaze_duration=0.5)
 
 # move_arm_to_all_pieces(robot_node, x_offset=0.3, y_offset=0.43)
 scene.current_object = scene.square_red

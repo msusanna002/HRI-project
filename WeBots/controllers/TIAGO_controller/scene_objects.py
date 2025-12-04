@@ -1,6 +1,5 @@
 # scene_objects.py
 
-from controller import Supervisor
 
 # Individual references (optional)
 puzzle_outline = None
@@ -70,7 +69,7 @@ piece_target_pairs = [
     ]
 
 
-def get_node_or_warn(robot: Supervisor, def_name: str):
+def get_node_or_warn(robot, def_name: str):
     """
     Fetch a Webots node by DEF name in the global scene tree.
     Warn if missing.
@@ -100,8 +99,7 @@ def get_proto_node_or_warn(proto_node, def_name: str):
         )
     return node
 
-
-def init_scene_objects(robot: Supervisor):
+def init_scene_objects(robot):
     """
     Initializes scene objects and automatically categorizes them
     into red_objects, blue_objects, and target_objects.
@@ -136,7 +134,7 @@ def init_scene_objects(robot: Supervisor):
         "big_triangle_2_blue": "BIG_TRIANGLE_2_BLUE",
         "square_blue": "SQUARE_BLUE",
     }
-
+    
     red_objects = {}
     blue_objects = {}
     target_objects = {}
@@ -146,7 +144,7 @@ def init_scene_objects(robot: Supervisor):
     for attr_name, def_name in world_def_map.items():
         node = get_node_or_warn(robot, def_name)
         globals()[attr_name] = node  # set e.g. small_triangle_red, square_blue, etc.
-        
+
         lname = attr_name.lower()
         if "red" in lname:
             red_objects[attr_name] = node

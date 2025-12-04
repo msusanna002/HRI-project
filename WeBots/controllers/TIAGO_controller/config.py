@@ -54,6 +54,21 @@ JOINT_TARGET_POS = [
     float("inf"),  # wheel_right_joint
 ]
 
+JOINT_RESCUE_POS_1 = [
+    0.24,    # head_2_joint
+    -0.67,   # head_1_joint
+    0.09,    # torso_lift_joint
+    1.0,    # arm_1_joint
+    1.0,     # arm_2_joint
+    0.0,     # arm_3_joint
+    1.0,     # arm_4_joint
+    1.5,     # arm_5_joint
+    -1.39,   # arm_6_joint
+    1.41,    # arm_7_joint
+    float("inf"),  # wheel_left_joint
+    float("inf"),  # wheel_right_joint
+]
+
 JOINT_RESCUE_POS_2 = [
     0.24,    # head_2_joint
     -0.67,   # head_1_joint

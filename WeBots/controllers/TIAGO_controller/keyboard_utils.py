@@ -1,10 +1,10 @@
 from head_motion_utils import make_head_look_at_target
-from arm_motion_utils import arm_movement, ArmMovementTask
+from arm_motion_utils import ArmMovementTask
 from task_utils import MovePieceTask
 from controller import Keyboard
 import scene_objects as scene
 import config as cfg
-from demo_utils import move_arm_to_all_pieces, create_move_all_pieces_task, _move_arm_over_group_back_and_forth
+from demo_utils import create_move_all_pieces_task
 
 def check_keyboard(robot_parts, keyboard, robot_node):
     global last_space_down, robot_view_target  
@@ -39,10 +39,10 @@ def check_keyboard(robot_parts, keyboard, robot_node):
         vp_rot_field.setSFRotation(cfg.init_viewpoint_rotation)
 
     elif key == ord('1'):
-        print("Move red square to its target position")
+        print("Move red small triangle to its target position")
         arm_task = MovePieceTask(
-            scene.square_red,          # the piece
-            scene.square_target_pos,   # the target position
+            scene.small_triangle_red,          # the piece
+            scene.small_triangle_red.getField("targetPos").getSFVec3f(),   # the target position
             robot_node
         )
         
@@ -84,20 +84,6 @@ def check_keyboard(robot_parts, keyboard, robot_node):
             scene.small_triangle_blue,          # the piece
             scene.small_triangle_target_pos,   # the target position
             robot_node
-        )
-
-    elif key == ord('4'):
-        print("Move red small triangle to its target position")
-        arm_task = move_arm_to_all_pieces(robot_node)
-
-    elif key == ord('5'):
-        print("Move red small triangle to its target position")
-        arm_task = _move_arm_over_group_back_and_forth(
-            scene.red_objects,
-            scene.target_objects,
-            robot_node,
-            "red",
-            "target"
         )
     
 

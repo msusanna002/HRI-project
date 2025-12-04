@@ -76,8 +76,6 @@ class GameManager:
         #filter out pieces of types that have already been placed
         possible_pieces = self.filter_out_placed_types(scattered_pieces)
 
-        print("Possible pieces to place:", [p.getDef() for p in possible_pieces])
-
         #return None if there are no possible pieces left, ie. puzzle is complete
         if len(possible_pieces) == 0:
             return None
@@ -101,7 +99,7 @@ class GameManager:
         if random_value == 0:
             return True
         else:
-            return False 
+            return True 
 
     def step(self):
         """Call this once per simulation tick from the main Webots loop."""
