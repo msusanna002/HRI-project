@@ -33,7 +33,7 @@ if not os.path.exists(URDF_PATH):
 my_chain = create_chain("tiago_urdf.urdf")
 
 # Enable motors and sensors
-robot_parts, arm_sensors, head_pan_sensor, head_tilt_sensor = \
+robot_parts, arm_sensors, head_sensors = \
     setup_motors_and_sensors(robot, time_step)
 
 # Enable RGB + depth cameras (devices, not supervisor nodes)
@@ -63,8 +63,6 @@ keyboard.enable(time_step)
 
 initial_time = robot.getTime()
 
-
-print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 #initialize game
 #TODO: adjust gaze duration as needed
 game = GameManager(robot_node, gaze_duration=0.5)

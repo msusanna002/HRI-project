@@ -12,19 +12,21 @@ class MoveAllPiecesTask:
 
     def __init__(self, robotNode, piece_target_pairs,
                  label="MoveAllPiecesTask"):
-        self.robotNode = robotNode
-        self.piece_target_pairs = piece_target_pairs
-        self.label = label
+        
+        self.robotNode = robotNode # the TIAGO robot node
+        self.piece_target_pairs = piece_target_pairs # list of (piece_node, target_vector) tuples
+        self.label = label # task label for logging
 
-        self.index = 0
-        self.current_subtask = None
-        self.done = False
+        self.index = 0 # current index in piece_target_pairs
+        self.current_subtask = None # current MovePieceTask
+        self.done = False # overall task completion flag
 
         if not piece_target_pairs:
             print(f"[{label}] WARNING: No piece-target pairs; finishing immediately.")
             self.done = True
 
     def step(self):
+        # If already done, nothing to do
         if self.done:
             return
 
@@ -35,6 +37,7 @@ class MoveAllPiecesTask:
                 self.done = True
                 return
 
+            # Start next subtask
             piece_node, target_pos = self.piece_target_pairs[self.index]
 
             if piece_node is None:
@@ -42,10 +45,10 @@ class MoveAllPiecesTask:
                 self.index += 1
                 return
 
+            #logging
             piece_def = piece_node.getDef()
             print(f"[{self.label}] Moving {piece_def} → {target_pos}")
 
-            # NOTE: second argument is a VECTOR, not a node
             self.current_subtask = MovePieceTask(
                 piece_node,
                 target_pos,     # world-space xyz vector

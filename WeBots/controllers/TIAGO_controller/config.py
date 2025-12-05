@@ -21,7 +21,7 @@ BASE_ELEMENTS = [
 LAST_LINK_VECTOR = [0.004, 0.0, -0.1741]
 
 ARM_JOINT_NAMES = [
-    "torso_lift_joint",  # can be disabled later if needed
+    "torso_lift_joint", 
     "arm_1_joint",
     "arm_2_joint",
     "arm_3_joint",
@@ -39,6 +39,7 @@ JOINT_NAMES = [
     "arm_6_joint", "arm_7_joint", "wheel_left_joint", "wheel_right_joint"
 ]
 
+# initial position for the joints
 JOINT_TARGET_POS = [
     0.24,    # head_2_joint
     -0.67,   # head_1_joint
@@ -54,6 +55,7 @@ JOINT_TARGET_POS = [
     float("inf"),  # wheel_right_joint
 ]
 
+# Rescue position for the joints
 JOINT_RESCUE_POS_1 = [
     0.24,    # head_2_joint
     -0.67,   # head_1_joint

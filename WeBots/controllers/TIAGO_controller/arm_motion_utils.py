@@ -548,7 +548,8 @@ class ArmMovementTask:
         self.last_err = None
     
     def _handle_rescue_mode(self):
-        """Handle rescue mode logic. Returns True if still in rescue mode."""
+        """Handle rescue mode logic. Returns True if still in rescue mode.
+        makes sure the state is rescue mode until resque posed is reached or rescue max-steps is reached"""
         if not self.in_rescue:
             return False
         
