@@ -3,6 +3,8 @@ import scene_objects as scene
 import arm_motion_utils as arm_utils
 import random
 
+random.seed(42)
+
 class GameManager:
     def __init__(self, robot_node, gaze_duration):
         self.robot_node = robot_node

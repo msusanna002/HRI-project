@@ -318,8 +318,6 @@ def grab_piece(piece_node, robotNode):
 
     held_piece = piece_node
 
-
-
 def drop_piece():
     """
     Release the piece: stop following the hand.
@@ -331,7 +329,6 @@ def drop_piece():
         return
 
     held_piece = None
-
 
 def update_held_piece(robot_node):
     """
@@ -443,7 +440,6 @@ class ArmMovementTask:
 
         # If error is large and we are stuck for too long, rescue
         if self.stuck_steps > self.STUCK_MAX_STEPS:
-            print(f"[ArmTask] Stuck with error {err:.4f} in {self.target_label}")
             return self._trigger_rescue(f"stuck, err={err:.4f}")
 
         return False
@@ -461,18 +457,18 @@ class ArmMovementTask:
         Choose a rescue pose that is a good IK seed for the current phase target.
         Only move to a rescue pose if IK from that seed gives acceptable error.
         """
-        print(f"[ArmTask] Rescue triggered in {self.target_label}: {reason}")
+        
 
         target, orient_kwargs = self._current_phase_target()
         candidate_poses = [
-            config.JOINT_RESCUE_POS_1,
-            config.JOINT_RESCUE_POS_2,
-            config.JOINT_RESCUE_POS_3,
+            ("JOINT_RESCUE_POS_1", config.JOINT_RESCUE_POS_1),
+            ("JOINT_RESCUE_POS_2", config.JOINT_RESCUE_POS_2),
+            ("JOINT_RESCUE_POS_3", config.JOINT_RESCUE_POS_3),
         ]
 
         best = None
 
-        for pose in candidate_poses:
+        for pose_name, pose in candidate_poses:
             seed = build_ik_seed_from_motor_pose(pose)
 
             ik_result, err = solve_move_arm_to_position(
@@ -485,9 +481,13 @@ class ArmMovementTask:
             if ik_result is None or not np.isfinite(err):
                 continue
 
-            # Keep the best feasible candidate
             if best is None or err < best["err"]:
-                best = {"pose": pose, "seed": seed, "err": err}
+                best = {
+                    "name": pose_name,
+                    "pose": pose,
+                    "seed": seed,
+                    "err": err,
+                }
 
         # If no candidate gives a decent rescue seed, give up
         if best is None:
@@ -499,6 +499,8 @@ class ArmMovementTask:
             print(f"[ArmTask] Best rescue seed error {best['err']:.4f} still too large, giving up.")
             self.done = True
             return True
+        
+        print(f"[ArmTask] Rescue triggered in {self.target_label}: {reason}, using rescue pose {best['name']}")
 
         # Now we *know* that starting from best["seed_pose] the IK for our phase target is reasonable.
         # Use that as a physical rescue pose to unlock the arm.
