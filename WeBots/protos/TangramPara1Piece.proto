@@ -2,11 +2,13 @@
 
 PROTO TangramPara1Piece [
   field SFColor  color        1 0 1
-  field SFFloat density       300
   field SFString name         "Para1"
   field SFVec3f translation   0 0 0
   field SFRotation rotation   0 0 1 0
   field SFVec3f    scale        0 0 0
+  field SFBool     isPlaced     FALSE
+  field SFVec3f    scatteredPos 0 0 0
+  field SFVec3f    targetPos  0 0 0
 ] {
   Transform {
     translation IS translation
@@ -55,9 +57,6 @@ PROTO TangramPara1Piece [
           ]
         }
 
-        physics Physics {
-          density IS density
-        }
       }
     ]
   }

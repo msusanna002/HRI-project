@@ -2,11 +2,13 @@
 
 PROTO TangramIsoPiece [
   field SFColor    color        1 0 0
-  field SFFloat    density      300
   field SFString   name         "Iso"
   field SFVec3f    translation  0 0 0
   field SFRotation rotation     0 0 1 0
   field SFVec3f    scale        0 0 0
+  field SFBool     isPlaced     FALSE
+  field SFVec3f    scatteredPos 0 0 0
+  field SFVec3f    targetPos  0 0 0
   
 ] {
   Transform {
@@ -16,6 +18,9 @@ PROTO TangramIsoPiece [
     children [
       Solid {
         name IS name
+        isPlaced IS isPlaced
+        scatteredPos IS scatteredPos
+        targetPos IS targetPos 
         children [
           Shape {
             appearance PBRAppearance {
@@ -51,9 +56,7 @@ PROTO TangramIsoPiece [
             Box { size 0.06 0.06 0.02 }
           ]
         }
-        physics Physics {
-          density IS density
-        }
+
       }
     ]
   }
