@@ -52,3 +52,20 @@ def world_to_robot(world_xyz, robot_node):
     p_B = R_BW.dot(p_rel_W)
 
     return [float(p_B[0]), float(p_B[1]), float(p_B[2])]
+
+def robot_to_world(robot_xyz, robot_node):
+    """
+    Convert a point from robot base_link coordinates back to Webots world coordinates.
+    """
+    base_translation_field = robot_node.getField("translation")
+    base_rotation_field    = robot_node.getField("rotation")
+
+    base_pos = np.array(base_translation_field.getSFVec3f())   # p_B^W
+    ax, ay, az, angle = base_rotation_field.getSFRotation()
+
+    # Rotation from base frame to world frame
+    R_WB = axis_angle_to_rotation_matrix([ax, ay, az], angle)
+
+    p_B = np.array(robot_xyz)
+    p_W = base_pos + R_WB.dot(p_B)
+    return [float(p_W[0]), float(p_W[1]), float(p_W[2])]

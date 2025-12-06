@@ -2,11 +2,13 @@
 
 PROTO TangramPara2Piece [
   field SFColor    color        1 1 0
-  field SFFloat    density      300
   field SFString   name         "Para2"
   field SFVec3f    translation  0 0 0
   field SFRotation rotation     0 0 1 0
   field SFVec3f    scale        0 0 0
+  field SFBool     isPlaced     FALSE
+  field SFVec3f    scatteredPos 0 0 0
+  field SFVec3f    targetPos  0 0 0
 ] {
   Transform {
     translation IS translation
@@ -15,6 +17,9 @@ PROTO TangramPara2Piece [
     children [
       Solid {
         name IS name
+        isPlaced IS isPlaced
+        scatteredPos IS scatteredPos
+        targetPos IS targetPos 
         children [
           Shape {
             appearance PBRAppearance {
@@ -52,9 +57,6 @@ PROTO TangramPara2Piece [
           children [
             Box { size 0.06 0.03 0.02 }
           ]
-        }
-        physics Physics {
-          density IS density
         }
       }
     ]

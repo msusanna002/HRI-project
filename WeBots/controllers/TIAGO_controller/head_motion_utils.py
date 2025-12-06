@@ -9,13 +9,22 @@ def normalize_angle(a):
     return a
 
 
-def make_head_look_at_target(robot_parts, robot_node, target_pos):
+def make_head_look_at_target(robot_parts, robot_node, target_node):
     # Fields on robot and viewpoint
     base_translation_field = robot_node.getField("translation")
     base_rotation_field    = robot_node.getField("rotation")
-    
 
-    if base_translation_field is None or base_rotation_field is None or target_pos is None:
+    if target_node is None:
+        print("Target node is None, cannot look at target.")
+        return
+    # if target is a node, get its position
+    if target_node.getField("translation") is not None:
+        target_pos = target_node.getField("translation").getSFVec3f()
+    #if tarhet is viewpoint
+    elif target_node.getField("position") is not None:
+        target_pos = target_node.getField("position").getSFVec3f()
+    
+    if base_translation_field is None or base_rotation_field is None:
         print("Could not get translation/rotation/position fields.")
         return
 
@@ -82,14 +91,16 @@ def make_head_look_at_target(robot_parts, robot_node, target_pos):
     clamped_yaw  = max(pan_min,  min(pan_max,  desired_pan))
     clamped_tilt = max(tilt_min, min(tilt_max, desired_tilt))
 
-    if abs(clamped_yaw - desired_pan) > 1e-3 or abs(clamped_tilt - desired_tilt) > 1e-3:
-        print(
-            "Head target out of range. "
-            f"Requested pan={desired_pan:.2f}, tilt={desired_tilt:.2f} "
-            f"→ clamped to pan={clamped_yaw:.2f}, tilt={clamped_tilt:.2f}"
-        )
+    # if abs(clamped_yaw - desired_pan) > 1e-3 or abs(clamped_tilt - desired_tilt) > 1e-3:
+    #     print(
+    #         "Head target out of range. "
+    #         f"Requested pan={desired_pan:.2f}, tilt={desired_tilt:.2f} "
+    #         f"→ clamped to pan={clamped_yaw:.2f}, tilt={clamped_tilt:.2f}"
+    #     )
 
     # Apply the (possibly clamped) positions
     head_pan.setPosition(-clamped_yaw)
     head_tilt.setPosition(-clamped_tilt)
+
+
     

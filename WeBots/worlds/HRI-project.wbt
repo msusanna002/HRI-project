@@ -9,6 +9,7 @@ EXTERNPROTO "../protos/TangramRightPiece.proto"
 EXTERNPROTO "../protos/TangramSquarePiece.proto"
 EXTERNPROTO "../protos/PuzzleOutline.proto"
 EXTERNPROTO "../protos/Table.proto"
+EXTERNPROTO "../protos/CustomTiagoGripper.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/pal_robotics/tiago/protos/Tiago.proto"
 EXTERNPROTO "../protos/TangramIsoPiece.proto"
 
@@ -21,8 +22,8 @@ WorldInfo {
   basicTimeStep 16
 }
 DEF USER_CAMERA Viewpoint {
-  orientation -0.47303337922328054 0.40157613275151616 0.7842040753177331 1.9771958147126565
-  position 0.2813061324544787 -2.1300238536282685 3.9372501551827446
+  orientation -0.37570441069953675 0.3756483724608402 0.8471921246378744 1.748990849844424
+  position 0 -2.05 2.6
   description "USER_CAMERA"
 }
 TexturedBackground {
@@ -31,61 +32,67 @@ TexturedBackgroundLight {
 }
 Floor {
 }
-Tiago {
-  hidden position_0_0 0.0007594557759937395
-  hidden position_0_1 -0.0006966065075656425
-  hidden position_0_2 -0.043005886323627236
-  hidden position_0_3 -0.03490665658498961
-  hidden position_0_4 -1.468180137541427
-  hidden position_0_5 0.10583306765591999
-  hidden position_1_0 0.08974440984967627
-  hidden translation_2 0 0 0.6897444098496762
-  hidden position_2_0 -0.6699997437124988
-  hidden position_3_0 0.0700290119991836
-  hidden translation_4 0.02509999995285912 0.1939999029012152 -0.171
-  hidden rotation_4 0 0 1 0.009029011999149785
-  hidden position_4_0 0.9999766209431202
-  hidden rotation_5 0.7913469339478263 -0.43230120124595567 0.4323027891798507 1.8027114954915893
-  hidden position_5_0 -1.6057960983512396e-05
-  hidden rotation_6 -0.5774138460946715 -0.5773231133717774 0.5773138428141809 2.09445072788618
-  hidden position_6_0 1.0000104874394244
-  hidden rotation_7 -0.9236437922491043 -0.2710010565177489 -0.2709992110799541 1.6501453734618141
-  hidden position_7_0 1.5000039006395647
-  hidden rotation_8 -0.5632350060277461 -0.604591039821633 0.563237074909244 2.054019049325551
-  hidden position_8_0 -1.3900004810787423
-  hidden rotation_9 -0.06396449695478672 -0.7056578428411145 -0.7056596573179921 3.013842039299262
-  hidden position_9_0 1.409999712316062
-  hidden rotation_10 0.7059610399211688 0.056880830093741286 0.705962875285428 3.027957745199793
-  hidden position_12_0 3.257776220371313e-07
-  hidden position_12_1 -1.6289050090250414e-07
-  hidden translation_33 -3.257776220371313e-07 0 0
-  hidden translation_34 -1.6289050090250414e-07 0 0
-  hidden rotation_35 0 0 -0.9999999999999999 0.6699997437124987
-  hidden position_35_0 0.23999975776645716
-  hidden rotation_36 0.985770299887611 -0.11886297166494317 0.11886340827381905 1.5851314221035042
-  hidden translation_45 1.0916893836143693e-07 -6.384016057459085e-08 0.029991895613377312
-  hidden rotation_45 -0.08554636897246849 0.24556572738683755 0.9655978936848401 2.0645525317807534e-11
-  hidden rotation_49 0.999999855807278 0.0003797264566785519 -0.00037972785149427223 1.5708001441927317
-  hidden rotation_50 0.9999998786853013 -0.0003483019462265011 0.000348303225613337 1.5708001213147058
-  hidden rotation_51 0 0 -1 0.04300588632362564
-  hidden position_51_0 0.007276804341984726
-  hidden rotation_52 -0.9999867622243009 0.0036383566970781002 0.003638370061533032 1.5708132378633182
-  hidden rotation_53 0 0 -1 0.03490665658499434
-  hidden position_53_0 0.010682811622005954
-  hidden rotation_54 -0.9999714701670633 0.005341284598914214 0.005341304218584093 1.5708285302399143
-  hidden rotation_55 0 0 -1 1.468180137541427
-  hidden position_55_0 0.08013004759834547
-  hidden rotation_56 -0.9983969433570088 0.04002206721366174 0.040022214223193256 1.572404342220139
-  hidden rotation_57 0 0 1 0.1058330676559182
-  hidden position_57_0 0.07103839425016979
-  hidden rotation_58 -0.9987397158861936 0.03548922835760001 0.03548935871705415 1.5720610786025215
-  translation 0.3011057400621216 0.004237650147787087 0.09321644372433197
-  rotation -0.006752897685739128 0.005167424466931925 0.9999638473951068 -2.3568018338290324
+DEF TIAGO_ROBOT Tiago {
+  hidden position_0_0 -8.133012373160744e-06
+  hidden position_0_1 5.387774133766624e-06
+  hidden position_0_2 -0.0019281546450438114
+  hidden position_0_3 -0.0023385174422259685
+  hidden position_0_4 -0.0004506841619402735
+  hidden position_0_5 -0.0008833286437548438
+  hidden linearVelocity_0 0.0009479702914158073 -0.003439731607489276 4.959972311539479e-05
+  hidden angularVelocity_0 0.013014500834908294 0.0036508068199369794 0.00015566376729877384
+  hidden position_1_0 0.02157919157720845
+  hidden translation_2 0 0 0.6215791915772084
+  hidden position_2_0 -0.21910035983568132
+  hidden position_3_0 0.7112196398340521
+  hidden translation_4 0.02508019645706306 0.19405973715991354 -0.171
+  hidden rotation_4 0 0 1 0.65021963983405
+  hidden position_4_0 0.6376752593185769
+  hidden rotation_5 0.9061261137876396 -0.29911102340556006 0.2991121221037155 1.6692175017822777
+  hidden position_5_0 2.005302930970196e-05
+  hidden rotation_6 -0.5774207943208882 -0.5773092149068623 0.577320791821546 2.0944715789974264
+  hidden position_6_0 0.7896637231370309
+  hidden rotation_7 -0.8641834456743137 -0.35580050250342793 -0.35579906498019176 1.7162548601857395
+  hidden position_7_0 0.6551816191128212
+  hidden rotation_8 -0.3062965986879847 -0.9013124308691136 0.30629772378028036 1.6745168496491283
+  hidden position_8_0 -0.5913445660799681
+  hidden rotation_9 -0.3526928839904539 -0.6616670512531293 -0.6616679249204125 2.463454139563536
+  hidden position_9_0 0.5912985707806027
+  hidden rotation_10 0.661662491117216 0.35270999366576056 0.6616633647232248 2.4634237060943045
+  hidden position_12_0 8.068968794027799e-05
+  hidden position_12_1 -7.411879952693333e-05
+  hidden translation_33 -8.068968794027799e-05 0 0
+  hidden translation_34 -7.411879952693333e-05 0 0
+  hidden rotation_35 0 0 -1 0.21910035983568224
+  hidden position_35_0 -0.5337861713029559
+  hidden rotation_36 0.9327026475904249 0.2550149931078146 -0.25501592983190896 1.6404125348742986
+  hidden translation_45 4.720908625133191e-08 -2.4747706495187316e-08 0.02999794588531103
+  hidden rotation_45 -0.3012987943592113 0.9535156166615538 -0.005196662411873048 3.917431100397654e-10
+  hidden linearVelocity_45 0.0006082461654994588 -0.0022246422612527228 -4.153692230486759e-05
+  hidden angularVelocity_45 0.013014497206917528 0.0036508084538774887 0.00015566370330348067
+  hidden rotation_49 0.9999999999834636 -4.0664912494517e-06 4.0665061865355435e-06 1.5708000000165363
+  hidden rotation_50 0.9999999999927429 2.693877171688731e-06 -2.693887066870279e-06 1.570800000007257
+  hidden rotation_51 0 0 -1 0.0019281546450765471
+  hidden position_51_0 -0.00022986688774694655
+  hidden rotation_52 -0.9999999867903521 -0.0001149330206879881 -0.00011493344286132155 1.5708000132096471
+  hidden rotation_53 0 0 -1 0.0023385174423107124
+  hidden position_53_0 0.000976430662952573
+  hidden rotation_54 -0.9999997616467129 0.00048821346058647655 0.0004882152538979449 1.5708002383533153
+  hidden rotation_55 0 0 -0.9999999999999999 0.0004506841616892662
+  hidden position_55_0 -0.0008932051580537513
+  hidden rotation_56 -0.9999998005469022 -0.00044660087918316617 -0.0004466025196428077 1.5708001994531178
+  hidden rotation_57 0 0 -1 0.0008833286437233817
+  hidden position_57_0 0.0003226186636487771
+  hidden rotation_58 -0.9999999739793956 0.00016130873650498702 0.00016130932902614948 1.5708000260206054
+  translation 0.3002193470523749 0.0033892034662599112 0.09308337348807541
+  rotation -0.012996522685308057 0.002570641875953503 0.9999122372480677 -2.356949493463269
   controller "TIAGO_Controller"
   supervisor TRUE
+  endEffectorSlot DEF GRIPPER_LINK CustomTiagoGripper {
+  }
 }
 DEF PUZZLE_OUTLINE PuzzleOutline {
-  translation 0.4 -0.68 0.52
+  translation 0.4 -0.66 0.52
 }
 Solid {
   translation 0 0 0.52
@@ -114,93 +121,98 @@ Table {
 }
 DEF SMALL_TRIANGLE_RED TangramIsoPiece {
   name "small_triangle_red"
-  translation -0.26 -0.18 0.52
+  translation -0.31 -0.18 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.31 -0.18 0.52
+  targetPos 0.62 -0.67 0.52
 }
-DEF PARALELLOGRAM_1_RED TangramPara2Piece {
+DEF PARALELLOGRAM_1_RED TangramPara1Piece {
   color 1 0 0
   name "para_1_red"
-  translation -0.27 0.13 0.52
+  translation -0.34 -0.5 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.34 -0.5 0.52
+  targetPos 0.225 -0.56 0.52
 }
-DEF PARALELLOGRAM_2_RED TangramPara1Piece {
+DEF PARALELLOGRAM_2_RED TangramPara2Piece {
   color 1 0 0
   name "para_2_red"
-  translation -0.3 0.05 0.52
+  translation -0.35 -0.42 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.35 -0.42 0.52
+  targetPos 0.225 -0.79 0.52
 }
-DEF BIG_TRIANGLE_1_RED TangramRightPiece {
+DEF BIG_TRIANGLE_1_RED TangramRightPiece1 {
   color 1 0 0
   name "big_triangle_1_red"
   translation -0.42 -0.14 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.42 -0.14 0.52
+  targetPos 0.535 -0.64 0.52
 }
-DEF BIG_TRIANGLE_2_RED TangramRightPiece {
+DEF BIG_TRIANGLE_2_RED TangramRightPiece2 {
   color 1 0 0
   name "big_triangle_2_red"
   translation -0.424336 -0.278054 0.52
   rotation 0 0 1 3.1
   scale 0.9 0.9 0.9
+  scatteredPos -0.424336 -0.278054 0.52
+  targetPos 0.461796 -0.717877 0.52
 }
 DEF SQUARE_RED TangramSquarePiece {
   color 1 0 0
   name "square_red"
-  translation -0.18 -0.38 0.52
+  translation -0.23 -0.34 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.23 -0.34 0.52
+  targetPos 0.301374 -0.677455 0.52
 }
 DEF SMALL_TRIANGLE_BLUE TangramIsoPiece {
   color 0 0 1
   name "small_triangle_blue"
-  translation -0.09 -0.54 0.52
+  translation -0.13 -0.59 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.13 -0.59 0.52
+  targetPos 0.62 -0.67 0.52
 }
-DEF PARALELLOGRAM_1_BLUE TangramPara2Piece {
+DEF PARALELLOGRAM_1_BLUE TangramPara1Piece {
   color 0 0 1
   name "para_1_blue"
   translation -0.41 0.15 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.41 0.15 0.52
+  targetPos 0.225 -0.56 0.52
 }
-DEF PARALELLOGRAM_2_BLUE TangramPara1Piece {
+DEF PARALELLOGRAM_2_BLUE TangramPara2Piece {
   color 0 0 1
   name "para_2_blue"
-  translation -0.39 -0.4 0.52
+  translation -0.3 -0.58 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.3 -0.58 0.52
+  targetPos 0.225 -0.79 0.52
 }
-DEF BIG_TRIANGLE_1_BLUE TangramRightPiece {
+DEF BIG_TRIANGLE_1_BLUE TangramRightPiece1 {
   color 0 0 1
   name "big_triangle_1_blue"
-  translation -0.24 -0.57 0.52
+  translation -0.04 -0.53 0.52
   scale 0.9 0.9 0.9
+  scatteredPos -0.04 -0.53 0.52
+  targetPos 0.535 -0.64 0.52
 }
-DEF BIG_TRIANGLE_2_BLUE TangramRightPiece {
+DEF BIG_TRIANGLE_2_BLUE TangramRightPiece2 {
   color 0 0 1
   name "big_triangle_2_blue"
   translation -0.408336 -0.00996555 0.52
   rotation 0 0 -1 3.1
   scale 0.9 0.9 0.9
+  scatteredPos -0.408336 -0.00996555 0.52
+  targetPos 0.461796 -0.717877 0.52
 }
 DEF SQUARE_BLUE TangramSquarePiece {
   color 0 0 1
   name "square_blue"
-  translation -0.05 -0.72 0.52
+  translation -0.05 -0.73 0.52
   scale 0.9 0.9 0.9
-}
-DEF TANGRAM_TARGET TangramPiecesTarget {
-}
-Solid {
-  translation 0.2 -0.16 0.52
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColor 0 1 0
-        transparency 0.6
-        roughness 0.7
-        metalness 0
-      }
-      geometry Cylinder {
-        height 0.01
-        radius 0.7
-      }
-    }
-  ]
+  scatteredPos -0.05 -0.73 0.52
+  targetPos 0.301374 -0.677455 0.52
 }
