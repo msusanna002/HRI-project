@@ -1,0 +1,2 @@
+timestamp,move_id,piece_id,decision,metrics_json
+2025-11-30T20:03:04.772086,move_1,SMALL_TRIANGLE_RED,Positive,"{""blink_count"": 0, ""shifts"": 0, ""dwell"": {""Robot"": 0.0, ""Puzzle"": 0.0, ""Scattered"": 0.0, ""Outside"": 4.531696796417235}, ""prop_robot"": 0.0, ""prop_board"": 0.0, ""ratio_score"": 0, ""blink_score"": 1, ""shift_score"": 1, ""dwell_score"": 1, ""final_score"": 0.9000000000000001}"
