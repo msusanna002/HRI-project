@@ -5,8 +5,9 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
 EXTERNPROTO "../protos/TangramPara2Piece.proto"
 EXTERNPROTO "../protos/TangramPara1Piece.proto"
-EXTERNPROTO "../protos/TangramRightPiece.proto"
 EXTERNPROTO "../protos/TangramSquarePiece.proto"
+EXTERNPROTO "../protos/TangramRightPiece1.proto"
+EXTERNPROTO "../protos/TangramRightPiece2.proto"
 EXTERNPROTO "../protos/PuzzleOutline.proto"
 EXTERNPROTO "../protos/Table.proto"
 EXTERNPROTO "../protos/CustomTiagoGripper.proto"
@@ -60,7 +61,7 @@ DEF TIAGO_ROBOT Tiago {
   hidden position_9_0 0.5912985707806027
   hidden rotation_10 0.661662491117216 0.35270999366576056 0.6616633647232248 2.4634237060943045
   hidden position_12_0 8.068968794027799e-05
-  hidden position_12_1 -7.411879952693333e-05
+  hidden position_12_1 7.411879952693333e-05
   hidden translation_33 -8.068968794027799e-05 0 0
   hidden translation_34 -7.411879952693333e-05 0 0
   hidden rotation_35 0 0 -1 0.21910035983568224
