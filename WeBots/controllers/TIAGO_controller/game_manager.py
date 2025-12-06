@@ -16,6 +16,8 @@ from logger import get_logger
 LOG = get_logger(__name__)
 GAZE_SERVER_URL = "http://127.0.0.1:8000/evaluate_move" 
 
+random.seed(42)
+
 class GameManager:
     LOG = get_logger(__name__)
     
@@ -24,17 +26,16 @@ class GameManager:
         self.robot_node = robot_node
         self.finished = False
 
-        self.state = "choose_next_piece"  
-        self.current_piece = None
-        self.last_piece = None
-        self.was_correct_move = None
+        self.state = "choose_next_piece"  # directs the game flow
+        self.current_piece = None #the piece currently being placed or removed
+        self.was_correct_move = None #result of gaze tracking for last move
 
-        self.current_arm_task = None
-        self.gaze_running = False
-        self.gaze_start_time = 0.0
-        self.gaze_duration = gaze_duration
-        self.placed_pieces = []
-        self.current_step = 0
+        self.current_arm_task = None #the current arm movement task
+        self.gaze_running = False #is gaze tracking currently running
+        self.gaze_start_time = 0.0 #time when gaze tracking started
+        self.gaze_duration = gaze_duration #duration of gaze tracking in seconds
+        self.placed_pieces = [] #list of pieces (nodes) that have been correctly placed
+        self.current_step = 0 #current step in gaze tracking logging
 
     def get_scattered_pieces(self):
         scattered = []
@@ -222,3 +223,8 @@ class GameManager:
             self.state = "gaze_track"
             self.gaze_start_time = arm_utils.robot.getTime()
             self.gaze_running = True
+from task_utils import MovePieceTask
+import scene_objects as scene
+import arm_motion_utils as arm_utils
+import random
+

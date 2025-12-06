@@ -1,108 +1,7 @@
 # e.g. in keyboard_utils.py or demo_utils.py
 
-from arm_motion_utils import arm_movement
 from task_utils import MovePieceTask
 import scene_objects as scene
-
-
-def _move_arm_over_group(piece_dict, robot_node, group_name):
-    """
-    Helper: loops over all nodes in piece_dict and calls arm_movement on each.
-
-    piece_dict: dict[str, Node] from scene_objects (red_objects, blue_objects, target_objects)
-    x_offset, y_offset: desired grip offset in robot frame
-    robot_node: Node of the robot (Supervisor.getFromDef("TIAGO") or similar)
-    group_name: string label for debug prints ("red", "blue", "target")
-    """
-    if not piece_dict:
-        print(f"[arm_demo] WARNING: No pieces in {group_name} group.")
-        return
-
-    # Sort keys for deterministic order
-    for name in sorted(piece_dict.keys()):
-        node = piece_dict[name]
-        if node is None:
-            print(f"[arm_demo] WARNING: Node '{name}' in {group_name} group is None, skipping.")
-            continue
-
-        print(f"[arm_demo] Moving arm to {group_name} piece '{name}'")
-        arm_movement(node, robot_node)
-
-def _move_arm_over_group_back_and_forth(piece_dict1, piece_dict2, robot_node,
-                                        group_name1, group_name2):
-    """
-    Helper: move arm back and forth between two groups.
-
-    piece_dict1, piece_dict2: dict[str, Node]
-    robot_node: Node of the robot (Supervisor.getFromDef("TIAGO") or similar)
-    group_name1, group_name2: string labels for debug prints ("red", "blue", etc.)
-    """
-
-    if not piece_dict1 and not piece_dict2:
-        print(f"[arm_demo] WARNING: No pieces in {group_name1} or {group_name2} groups.")
-        return
-
-    if not piece_dict1:
-        print(f"[arm_demo] WARNING: No pieces in {group_name1} group.")
-        return
-
-    if not piece_dict2:
-        print(f"[arm_demo] WARNING: No pieces in {group_name2} group.")
-        return
-
-    # Deterministic order in each group
-    names1 = sorted(piece_dict1.keys())
-    names2 = sorted(piece_dict2.keys())
-
-    # Only iterate up to the shorter list length
-    limit = min(len(names1), len(names2))
-    if limit == 0:
-        print(f"[arm_demo] WARNING: No overlapping indices for {group_name1} and {group_name2}.")
-        return
-
-    for i in range(limit):
-        name1 = names1[i]
-        name2 = names2[i]
-
-        node1 = piece_dict1.get(name1)
-        node2 = piece_dict2.get(name2)
-
-        if node1 is None or node2 is None:
-            print(f"[arm_demo] WARNING: Node '{name1}' in {group_name1} "
-                  f"or '{name2}' in {group_name2} is None, skipping.")
-            continue
-
-        print(f"[arm_demo] Moving arm to {group_name1} piece '{name1}' "
-              f"then {group_name2} piece '{name2}'")
-        arm_movement(node1, robot_node)
-        arm_movement(node2, robot_node) 
-
-
-def move_arm_to_all_pieces(robot_node, ):
-    """
-    Move the arm sequentially to:
-      1. all red pieces
-      2. all blue pieces
-      3. all target pieces
-
-    Uses the dictionaries initialized in scene_objects.init_scene_objects(robot).
-    """
-    # Make sure scene objects were initialized
-    # (optional but helpful)
-    if scene.red_objects is None or scene.blue_objects is None:
-        print("[arm_demo] ERROR: scene_objects.init_scene_objects(robot) was not called.")
-        return
-
-    print("[arm_demo] Visiting all RED pieces...")
-    _move_arm_over_group(scene.red_objects, robot_node, "red")
-
-    print("[arm_demo] Visiting all BLUE pieces...")
-    _move_arm_over_group(scene.blue_objects, robot_node, "blue")
-
-    print("[arm_demo] Visiting all TARGET pieces...")
-    _move_arm_over_group(scene.target_objects, robot_node, "target")
-
-
 
 class MoveAllPiecesTask:
     """
@@ -112,19 +11,21 @@ class MoveAllPiecesTask:
 
     def __init__(self, robotNode, piece_target_pairs,
                  label="MoveAllPiecesTask"):
-        self.robotNode = robotNode
-        self.piece_target_pairs = piece_target_pairs
-        self.label = label
+        
+        self.robotNode = robotNode # the TIAGO robot node
+        self.piece_target_pairs = piece_target_pairs # list of (piece_node, target_vector) tuples
+        self.label = label # task label for logging
 
-        self.index = 0
-        self.current_subtask = None
-        self.done = False
+        self.index = 0 # current index in piece_target_pairs
+        self.current_subtask = None # current MovePieceTask
+        self.done = False # overall task completion flag
 
         if not piece_target_pairs:
             print(f"[{label}] WARNING: No piece-target pairs; finishing immediately.")
             self.done = True
 
     def step(self):
+        # If already done, nothing to do
         if self.done:
             return
 
@@ -135,6 +36,7 @@ class MoveAllPiecesTask:
                 self.done = True
                 return
 
+            # Start next subtask
             piece_node, target_pos = self.piece_target_pairs[self.index]
 
             if piece_node is None:
@@ -142,10 +44,10 @@ class MoveAllPiecesTask:
                 self.index += 1
                 return
 
+            #logging
             piece_def = piece_node.getDef()
             print(f"[{self.label}] Moving {piece_def} → {target_pos}")
 
-            # NOTE: second argument is a VECTOR, not a node
             self.current_subtask = MovePieceTask(
                 piece_node,
                 target_pos,     # world-space xyz vector
