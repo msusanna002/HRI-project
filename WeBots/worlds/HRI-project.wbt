@@ -5,8 +5,9 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
 EXTERNPROTO "../protos/TangramPara2Piece.proto"
 EXTERNPROTO "../protos/TangramPara1Piece.proto"
-EXTERNPROTO "../protos/TangramRightPiece.proto"
 EXTERNPROTO "../protos/TangramSquarePiece.proto"
+EXTERNPROTO "../protos/TangramRightPiece1.proto"
+EXTERNPROTO "../protos/TangramRightPiece2.proto"
 EXTERNPROTO "../protos/PuzzleOutline.proto"
 EXTERNPROTO "../protos/Table.proto"
 EXTERNPROTO "../protos/CustomTiagoGripper.proto"
@@ -22,8 +23,8 @@ WorldInfo {
   basicTimeStep 16
 }
 DEF USER_CAMERA Viewpoint {
-  orientation -0.37570441069953675 0.3756483724608402 0.8471921246378744 1.748990849844424
-  position 0 -2.05 2.6
+  orientation -0.47303337922328054 0.40157613275151616 0.7842040753177331 1.9771958147126565
+  position 0.2813061324544787 -2.1300238536282685 3.9372501551827446
   description "USER_CAMERA"
 }
 TexturedBackground {
@@ -60,7 +61,7 @@ DEF TIAGO_ROBOT Tiago {
   hidden position_9_0 0.5912985707806027
   hidden rotation_10 0.661662491117216 0.35270999366576056 0.6616633647232248 2.4634237060943045
   hidden position_12_0 8.068968794027799e-05
-  hidden position_12_1 -7.411879952693333e-05
+  hidden position_12_1 7.411879952693333e-05
   hidden translation_33 -8.068968794027799e-05 0 0
   hidden translation_34 -7.411879952693333e-05 0 0
   hidden rotation_35 0 0 -1 0.21910035983568224
