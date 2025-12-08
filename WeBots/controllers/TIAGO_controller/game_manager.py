@@ -174,45 +174,31 @@ class GameManager:
 
         # If gaze tracking is running
         elif self.gaze_running and self.state == "gaze_track":
-            
-            #get error detection decision from gaze data gathering
-            #OBS: is called every step during gaze tracking
-            self.was_correct_move = self.gather_gaze_data()
-
-            #printing log
-            now = arm_utils.robot.getTime() #current time
-            delta = now - self.gaze_start_time #time elapsed since gaze started
-            steps = 5 #number of log steps during gaze duration
-            gaze_time_step = self.gaze_duration / steps #time per log step
-
-            #print if it's time for next log step
-            if delta >= gaze_time_step * self.current_step:
-                if self.current_step == 0:
-                    print("Gaze tracking running...")
-                print (steps - self.current_step ,"/", steps )
-                self.current_step += 1
-            
-            #when gaze duration is over, process result
-            if delta >= self.gaze_duration:
+            now = arm_utils.robot.getTime()
+            if now - self.gaze_start_time >= self.gaze_duration:
                 print("Finished gaze tracking")
-                print("Gaze tracking result: ", self.was_correct_move)
-
-                #reset gaze variables for next use
+                self.was_correct_move = self.gather_gaze_data()
+                print("Gaze tracking result:", self.was_correct_move)
                 self.current_step = 0
                 self.gaze_running = False
-
-                #if the move was correct, mark piece as placed and add to placed pieces array
                 if self.was_correct_move:
                     print("Correct move!")
                     self.current_piece.getField("isPlaced").setSFBool(True)
                     self.placed_pieces.append(self.current_piece)
                     self.state = "choose_next_piece"
-                #if the move was incorrect, retry (remove piece and choose next via LLM)
                 else:
                     print("Incorrect move, try again.")
                     self.state = "retry"
             else:
-                return
+                steps = 5
+                gaze_time_step = self.gaze_duration / steps
+                if now - self.gaze_start_time >= gaze_time_step * self.current_step:
+                    if self.current_step == 0:
+                        print("Gaze tracking running...")
+                        print(steps - self.current_step, "/", steps)
+                        self.current_step += 1
+
+            return 
 
         # State: Decide what to do next 
         elif self.state == "choose_next_piece":

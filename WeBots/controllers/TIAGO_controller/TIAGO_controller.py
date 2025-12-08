@@ -63,6 +63,8 @@ keyboard.enable(time_step)
 
 initial_time = robot.getTime()
 
+game = GameManager(robot_node, gaze_duration=5.0)
+
 
 print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 

@@ -25,6 +25,8 @@ def create_chain(urdf_path="tiago_urdf.urdf"):
         if link.name == "torso_lift_joint":
             my_chain.active_links_mask[i] = False
 
+    print ("IK chain created with active links:", my_chain.active_links_mask)
+
     return my_chain
 
 
