@@ -96,7 +96,6 @@ class GameManager:
 
         #randomly choose one of the possible pieces
         i = random.randint(0, len(possible_pieces) - 1)
-        print("random choice index:", i)
 
         return possible_pieces[i]
 

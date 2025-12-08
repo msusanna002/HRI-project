@@ -1,3 +1,9 @@
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    message="Link .* is of type 'fixed' but set as active in the active_links_mask.*",
+    category=UserWarning
+)
 from controller import Supervisor, Keyboard, Camera, RangeFinder
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
@@ -65,8 +71,6 @@ initial_time = robot.getTime()
 
 game = GameManager(robot_node, gaze_duration=5.0)
 
-
-print("Use arrow keys to drive. Press SPACE to turn head toward the camera.")
 
 # move_arm_to_all_pieces(robot_node, x_offset=0.3, y_offset=0.43)
 scene.current_object = scene.square_red

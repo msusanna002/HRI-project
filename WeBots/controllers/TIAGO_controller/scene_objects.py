@@ -113,32 +113,4 @@ def init_scene_objects(robot):
             all_pieces[attr_name] = node
         elif "blue" in lname:
             blue_objects[attr_name] = node
-
-    # 2) Internal target nodes inside the TangramPiecesTarget PROTO instance
-    if tangram_target_proto is None:
-        print(
-            "[scene_objects] WARNING: 'tangram_target_proto' is None. "
-            "Internal target pieces will not be initialized."
-        )
-        return  # nothing more we can do for target pieces
-
-    # Map variables -> internal DEF names inside TangramPiecesTarget
-    target_def_map = {
-        "small_triangle_target": "SMALL_TRIANGLE_TARGET",
-        "para_1_target": "PARALELLOGRAM_1_TARGET",
-        "para_2_target": "PARALELLOGRAM_2_TARGET",
-        "big_triangle_1_target": "BIG_TRIANGLE_1_TARGET",
-        "big_triangle_2_target": "BIG_TRIANGLE_2_TARGET",
-        "square_target": "SQUARE_TARGET",
-    }
-
-    for attr_name, internal_def in target_def_map.items():
-        node = get_proto_node_or_warn(tangram_target_proto, internal_def)
-        globals()[attr_name] = node
-        target_objects[attr_name] = node
-
-    # Optional debug print
-    print("[scene_objects] Initialized:")
-    print(f"  Red objects:   {list(red_objects.keys())}")
-    print(f"  Blue objects:  {list(blue_objects.keys())}")
-    print(f"  Target objects:{list(target_objects.keys())}")
+            all_pieces[attr_name] = node
