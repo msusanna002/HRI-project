@@ -17,9 +17,6 @@ PROTO TangramRightPiece2 [
     children [
       Solid {
         name IS name
-        isPlaced IS isPlaced
-        scatteredPos IS scatteredPos
-        targetPos IS targetPos 
         children [
           Shape {
             appearance PBRAppearance {
